@@ -6,13 +6,6 @@
 [sub_resource type="SystemFont" id="SystemFont_u2vgl"]
 font_names = PackedStringArray("Sans-Serif")
 
-[sub_resource type="Gradient" id="Gradient_u2vgl"]
-interpolation_mode = 1
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_u2vgl"]
-gradient = SubResource("Gradient_u2vgl")
-
 [node name="Browser" type="Node2D" unique_id=2027099336]
 script = ExtResource("1_7oh8c")
 
@@ -54,27 +47,25 @@ text = "https://website.com"
 context_menu_enabled = false
 emoji_menu_enabled = false
 
-[node name="Label" type="Label" parent="." unique_id=1261750864]
+[node name="PageTitle" type="Label" parent="." unique_id=1261750864]
 z_index = 2
-offset_left = -554.0
-offset_top = -315.0
-offset_right = -401.0
-offset_bottom = -292.0
+offset_left = -553.0
+offset_top = -316.0
+offset_right = -400.0
+offset_bottom = -293.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = SubResource("SystemFont_u2vgl")
 theme_override_font_sizes/font_size = 18
-text = "Document"
+text = "about:blank"
 
-[node name="TextureRect" type="TextureRect" parent="." unique_id=1848895827]
-offset_left = -575.9988
-offset_top = -322.82733
-offset_right = 564.73376
-offset_bottom = -253.95638
-rotation = -0.0010086967
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1759942384]
+offset_left = -576.0
+offset_top = -324.0
+offset_right = 566.0
+offset_bottom = -254.0
 mouse_filter = 2
-texture = SubResource("GradientTexture1D_u2vgl")
 
 [connection signal="meta_clicked" from="Document" to="." method="_on_document_meta_clicked"]
 [connection signal="meta_hover_ended" from="Document" to="." method="_on_document_meta_hover_ended"]

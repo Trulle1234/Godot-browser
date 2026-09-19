@@ -4,6 +4,7 @@ const ToBbCode = preload("uid://duach83yc561m")
 
 @onready var document: RichTextLabel = $Document
 @onready var url_bar: TextEdit = $URLBar
+@onready var page_title: Label = $PageTitle
 
 var current_url = ""
 var last_url = ""
@@ -37,12 +38,16 @@ func send_http_request(url):
 	var error = http.request(url)
 
 	if error != OK:
-		document.text = "[wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]"
+		document.clear()
+		document.append_text("[wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]")
+		page_title.text = "Adress not valid"
 
 # when compleated, show it
 func _on_request_completed(result, response_code, _headers, body):
 	if result != HTTPRequest.RESULT_SUCCESS:
-		document.text = "[wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]"
+		document.clear()
+		document.append_text("[wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]")
+		page_title.text = "Could not connect"
 		return
 		
 	if response_code != 200:
@@ -53,14 +58,23 @@ func _on_request_completed(result, response_code, _headers, body):
 			document.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
 			document.add_image(error_cat, 0, 0, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "error_cat", false, "")
 		else:
-			document.text = "[wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]"
+			document.clear()
+			document.append_text("[wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
+		
+		page_title.text = "HTTP error " + str(response_code)
 		return
 
 	var html = (body.get_string_from_utf8())
-	var bbcode_result = await ToBbCode.to_bbcode(html, document)
-	var in_bbcode = bbcode_result["text"]
+	var bbcode_result = ToBbCode.to_bbcode(html, document)
 	
-	document.text = in_bbcode
+	document.clear()
+	document.append_text(bbcode_result["text"])
+	
+	if bbcode_result["title"]:
+		page_title.text = bbcode_result["title"]
+	else:
+		page_title.text = "Untitled"
+	
 	await document.finished
 	document.scroll_to_line(0)
 
@@ -145,10 +159,7 @@ func get_img(url):
 	
 	var image = Image.new()
 
-	var img_error = image.load_png_from_buffer(body)
-
-	if img_error != OK:
-		img_error = image.load_jpg_from_buffer(body)
+	var img_error = image.load_jpg_from_buffer(body)
 
 	if img_error != OK:
 		return null
