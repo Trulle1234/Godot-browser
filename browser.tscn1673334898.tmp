@@ -25,29 +25,34 @@ size_flags_horizontal = 4
 focus_mode = 2
 theme = ExtResource("3_x0m2j")
 bbcode_enabled = true
+text = "Loading..."
 threaded = true
 progress_bar_delay = 0
 selection_enabled = true
 deselect_on_focus_loss_enabled = false
 drag_and_drop_selection_enabled = false
 
-[node name="URLBar" type="LineEdit" parent="." unique_id=1144891038]
-z_index = 3
-offset_left = -559.0
-offset_top = -280.0
-offset_right = 551.0
-offset_bottom = -249.0
+[node name="URLBar" type="TextEdit" parent="." unique_id=1270512074]
+z_index = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -560.0
+offset_top = -281.0
+offset_right = 552.0
+offset_bottom = -248.0
+grow_horizontal = 2
+size_flags_vertical = 0
 theme = ExtResource("3_x0m2j")
-placeholder_text = "Enter a URL or search DuckDuckGo"
+text = "https://website.com"
 context_menu_enabled = false
 emoji_menu_enabled = false
 
 [node name="PageTitle" type="Label" parent="." unique_id=1261750864]
 z_index = 2
 offset_left = -553.0
-offset_top = -311.0
+offset_top = -312.0
 offset_right = -400.0
-offset_bottom = -288.0
+offset_bottom = -289.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_colors/font_color = Color(0, 0, 0, 1)

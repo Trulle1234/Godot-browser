@@ -3,7 +3,7 @@ extends Node2D
 const ToBbCode = preload("uid://duach83yc561m")
 
 @onready var document: RichTextLabel = $Document
-@onready var url_bar: TextEdit = $URLBar
+@onready var url_bar: LineEdit = $URLBar
 @onready var page_title: Label = $PageTitle
 
 var current_url = ""
@@ -11,20 +11,22 @@ var last_url = ""
 
 var hovered_meta = ""
 
-# send a http request on ready
-func _ready():
-	send_http_request("https://wikipedia.org/")
-
 # handle input
 func _process(delta):
 	if Input.is_action_just_pressed("ui_accept"):
-		send_http_request(url_bar.text.strip_escapes())
+		var url_bar_text = url_bar.text.strip_escapes()
+		
+		if url_bar_text.begins_with("http"):
+			send_http_request(url_bar_text)
+		else:
+			send_http_request("https://html.duckduckgo.com/html/?q=" + url_bar_text)
 	
 	if Input.is_action_just_pressed("back"):
 		send_http_request(last_url)
 
 # request the html from a website
 func send_http_request(url):
+	url = unwrap_duckduckgo_url(url)
 	last_url = current_url
 	
 	current_url = url
@@ -39,14 +41,14 @@ func send_http_request(url):
 
 	if error != OK:
 		document.clear()
-		document.append_text("[wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]")
+		document.append_text("[br][wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]")
 		page_title.text = "Adress not valid"
 
 # when compleated, show it
 func _on_request_completed(result, response_code, _headers, body):
 	if result != HTTPRequest.RESULT_SUCCESS:
 		document.clear()
-		document.append_text("[wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]")
+		document.append_text("[br][wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]")
 		page_title.text = "Could not connect"
 		return
 		
@@ -59,7 +61,7 @@ func _on_request_completed(result, response_code, _headers, body):
 			document.add_image(error_cat, 0, 0, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "error_cat", false, "")
 		else:
 			document.clear()
-			document.append_text("[wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
+			document.append_text("[br][wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
 		
 		page_title.text = "HTTP error " + str(response_code)
 		return
@@ -77,6 +79,25 @@ func _on_request_completed(result, response_code, _headers, body):
 	
 	await document.finished
 	document.scroll_to_line(0)
+
+func unwrap_duckduckgo_url(url):
+	# only hadle duckduckgo redidrects
+	if not url.begins_with("https://duckduckgo.com/l/"):
+		return url
+		
+	var query_start = url.find("?")
+	if query_start == -1:
+		return url
+		
+	var query = url.substr(query_start + 1)
+
+	for part in query.split("&"):
+		var pair = part.split("=", true, 1)
+
+		if pair.size() == 2 and pair[0] == "uddg":
+			return pair[1].uri_decode() 
+	
+	return url
 
 # go to clicked link
 func _on_document_meta_clicked(meta):

@@ -43,9 +43,9 @@ static func to_bbcode(html, document):
 		"del": "s",
 		"ul": "ul",
 		"ol": "ol",
-		"li": "p",
 		"code": "code",
-		"blockquote": "indent"
+		"blockquote": "indent",
+		"pre": "code"
 	}
 
 	for tag in html_to_bbcode:
@@ -84,6 +84,15 @@ static func to_bbcode(html, document):
 	for entity in HtmlEntites.html_entities:
 		cleaned = cleaned.replace(entity, HtmlEntites.html_entities[entity])
 	
+	# hex html entities
+	var hex_entity_regex = RegEx.create_from_string("&#x([0-9a-fA-F]+);")
+	var hex_matches = hex_entity_regex.search_all(cleaned)
+	
+	for i in range(hex_matches.size() - 1, -1, -1):
+		var match = hex_matches[i]
+		
+		cleaned = (cleaned.substr(0, match.get_start()) + "[char=" + str(match.get_string(1)) + "]" + cleaned.substr(match.get_end()))
+	
 	# br newlines
 	var br_regex = RegEx.create_from_string("(?i)<br\\b[^>]*>")
 	cleaned = br_regex.sub(cleaned, "[br]", true)
@@ -92,13 +101,23 @@ static func to_bbcode(html, document):
 	var hr_regex = RegEx.create_from_string("(?i)<hr\\b[^>]*>")
 	cleaned = hr_regex.sub(cleaned, "[br][hr width=100%]", true)
 	
+	# table rows to newlines
+	var tr_open_regex = RegEx.create_from_string("(?is)<tr\\b[^>]*>")
+	var tr_close_regex = RegEx.create_from_string("(?is)</tr\\s*>")
+
+	cleaned = tr_open_regex.sub(cleaned, "", true)
+	cleaned = tr_close_regex.sub(cleaned, "[br]", true)
+
+	# cells get a little spacing
+	var td_open_regex = RegEx.create_from_string("(?is)<t[dh]\\b[^>]*>")
+	var td_close_regex = RegEx.create_from_string("(?is)</t[dh]\\s*>")
+
+	cleaned = td_open_regex.sub(cleaned, "", true)
+	cleaned = td_close_regex.sub(cleaned, " ", true)
+	
 	# remove any remaining html tags
 	var unknown_tag_regex = RegEx.create_from_string("(?is)<[^>]+>")
 	cleaned = unknown_tag_regex.sub(cleaned, "", true)
-	
-	# remove whitespace around newlines
-	var newline_space_regex = RegEx.create_from_string("[ \\t]*\\n[ \\t]*")
-	cleaned = newline_space_regex.sub(cleaned, "\n", true)
 	
 	return {
 		"title": title, 
