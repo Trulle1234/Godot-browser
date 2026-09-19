@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>HTML Parser Test &amp; Demo</title>
+
+	<style>
+		body {
+			background: red;
+			color: white;
+		}
+
+		.this-should-not-appear {
+			display: none;
+		}
+	</style>
+
+	<script>
+		console.log("this script should be removed");
+		var fake_html = "<b>this should never appear</b>";
+	</script>
+</head>
+
+<body>
+
+	<!-- this comment should be removed -->
+
+	<h1>Main Heading H1</h1>
+	<h2>Second Heading H2</h2>
+	<h3>Third Heading H3</h3>
+	<h4>Fourth Heading H4</h4>
+	<h5>Fifth Heading H5</h5>
+	<h6>Sixth Heading H6</h6>
+
+	<hr>
+
+	<p>
+		This is a normal paragraph with lots
+		of       weird
+		whitespace.
+	</p>
+
+	<p>
+		This tests <b>bold</b>,
+		<strong>strong</strong>,
+		<i>italic</i>,
+		<em>emphasis</em>,
+		<u>underline</u>,
+		<s>strikethrough</s>,
+		and <del>deleted text</del>.
+	</p>
+
+	<p>
+		This tests <b><i>nested bold and italic</i></b>
+		and <strong><u>nested strong and underline</u></strong>.
+	</p>
+
+	<div>
+		This text is inside a div.
+	</div>
+
+	<header>
+		This text is inside a header.
+	</header>
+
+	<p class="test" id="paragraph-with-attributes" data-test="hello">
+		This paragraph has attributes.
+	</p>
+
+	<hr>
+
+	<h2>Links</h2>
+
+	<p>
+		Absolute link:
+		<a href="https://example.com/">Example.com</a>
+	</p>
+
+	<p>
+		Relative link:
+		<a href="/about">About page</a>
+	</p>
+
+	<p>
+		Relative file link:
+		<a href="contact.html">Contact</a>
+	</p>
+
+	<p>
+		Parent-directory link:
+		<a href="../index.html">Parent page</a>
+	</p>
+
+	<p>
+		Anchor link:
+		<a href="#entities">Jump to entities</a>
+	</p>
+
+	<p>
+		Link with attributes:
+		<a class="special-link" target="_blank" href="https://example.com/test?q=hello&amp;x=2" rel="noopener">
+			Example with attributes
+		</a>
+	</p>
+
+	<p>
+		Formatted link:
+		<a href="https://example.com/bold"><b>Bold link text</b></a>
+	</p>
+
+	<hr>
+
+	<h2 id="entities">HTML Entities</h2>
+
+	<p>Ampersand: &amp;</p>
+	<p>Less than: &lt;</p>
+	<p>Greater than: &gt;</p>
+	<p>Double quote: &quot;Hello&quot;</p>
+	<p>Apostrophe: &apos;Hello&apos;</p>
+	<p>Non-breaking space: Hello&nbsp;World</p>
+
+	<p>Copyright: &copy;</p>
+	<p>Registered: &reg;</p>
+	<p>Trademark: &trade;</p>
+
+	<p>Euro: &euro;</p>
+	<p>Pound: &pound;</p>
+	<p>Yen: &yen;</p>
+	<p>Cent: &cent;</p>
+
+	<p>Degree: 25&deg;C</p>
+	<p>Plus/minus: &plusmn;</p>
+	<p>Multiply: &times;</p>
+	<p>Divide: &divide;</p>
+
+	<p>Ellipsis: Wait&hellip;</p>
+	<p>En dash: one&ndash;two</p>
+	<p>Em dash: one&mdash;two</p>
+
+	<p>Single quotes: &lsquo;Hello&rsquo;</p>
+	<p>Double quotes: &ldquo;Hello&rdquo;</p>
+
+	<p>Angle quotes: &laquo;Hello&raquo;</p>
+
+	<p>Bullet: &bull;</p>
+	<p>Middle dot: &middot;</p>
+
+	<p>Arrows: &larr; &rarr; &uarr; &darr;</p>
+
+	<hr>
+
+	<h2>Line Breaks</h2>
+
+	<p>
+		Line one<br>
+		Line two<br/>
+		Line three<br />
+		Line four
+	</p>
+
+	<hr>
+
+	<h2>Unknown Tags</h2>
+
+	<section>
+		This text is inside an unknown section tag and should remain,
+		but the section tags themselves should disappear.
+	</section>
+
+	<article>
+		This text is inside an article.
+		<span>This span should disappear but its text should remain.</span>
+	</article>
+
+	<custom-element test="123">
+		This is inside a custom unknown element.
+	</custom-element>
+
+	<hr>
+
+	<h2>Mixed Content</h2>
+
+	<div class="card">
+		<h3>Card Title</h3>
+
+		<p>
+			This is a <strong>mixed</strong> example with
+			<a href="/relative-page">a relative link</a>,
+			an entity like &copy;,
+			and a line break<br>
+			right here.
+		</p>
+	</div>
+
+	<p>
+		Special characters written normally:
+		å ä ö Å Ä Ö é ñ ç € © ™
+	</p>
+
+	<p>
+		The end.
+	</p>
+
+</body>
+</html>

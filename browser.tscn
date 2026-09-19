@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://0fccdtetrrwf"]
+
+[ext_resource type="Script" uid="uid://b6os1meqa4eow" path="res://browser.gd" id="1_7oh8c"]
+[ext_resource type="Theme" uid="uid://dj7v6k65e8dsi" path="res://theme.tres" id="3_x0m2j"]
+
+[node name="Browser" type="Node2D" unique_id=2027099336]
+script = ExtResource("1_7oh8c")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1257063879]
+anchor_mode = 0
+
+[node name="Document" type="RichTextLabel" parent="." unique_id=393974088]
+offset_right = 1152.0
+offset_bottom = 648.0
+focus_mode = 2
+theme = ExtResource("3_x0m2j")
+bbcode_enabled = true
+selection_enabled = true
+
+[connection signal="meta_clicked" from="Document" to="." method="_on_document_meta_clicked"]
+[connection signal="meta_hover_ended" from="Document" to="." method="_on_document_meta_hover_ended"]
+[connection signal="meta_hover_started" from="Document" to="." method="_on_document_meta_hover_started"]
