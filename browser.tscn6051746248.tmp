@@ -26,8 +26,6 @@ size_flags_horizontal = 4
 focus_mode = 2
 theme = ExtResource("3_x0m2j")
 bbcode_enabled = true
-text = "
-"
 threaded = true
 progress_bar_delay = 0
 selection_enabled = true
@@ -56,7 +54,7 @@ size_flags_vertical = 0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = SubResource("SystemFont_u2vgl")
 theme_override_font_sizes/font_size = 18
-text = "about blank"
+text = "about:blank"
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1759942384]
 offset_left = -576.0

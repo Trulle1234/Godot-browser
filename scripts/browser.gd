@@ -6,24 +6,47 @@ const ToBbCode = preload("uid://duach83yc561m")
 @onready var url_bar: LineEdit = $URLBar
 @onready var page_title: Label = $PageTitle
 
-var current_url = ""
-var last_url = ""
+var current_url = "home.html"
+var last_url = "home.html"
 
 var hovered_meta = ""
 
+func _ready() -> void:
+	to_home()
+
 # handle input
-func _process(delta):
-	if Input.is_action_just_pressed("ui_accept"):
-		var url_bar_text = url_bar.text.strip_escapes()
-		
-		if url_bar_text.begins_with("http"):
+func _process(_delta):
+	if Input.is_action_just_pressed("enter") and url_bar.has_focus():
+		var url_bar_text = url_bar.text.strip_edges()
+	
+		if url_bar_text == "" or url_bar_text == "about:blank":
+			to_about_blank()
+		elif url_bar_text == "home.html":
+			to_home()
+		elif url_bar_text.begins_with("http"):
 			send_http_request(url_bar_text)
 		else:
-			send_http_request("https://html.duckduckgo.com/html/?q=" + url_bar_text)
+			send_http_request(
+				"https://html.duckduckgo.com/html/?q=" +
+				url_bar_text.replace(" ", "%20")
+			)
 	
-	if Input.is_action_just_pressed("back"):
-		send_http_request(last_url)
-
+	elif Input.is_action_just_pressed("back"):
+		if last_url == "" or last_url == "about:blank":
+			to_about_blank()
+		elif last_url == "home.html":
+			to_home()
+		else:
+			send_http_request(last_url)
+	
+	elif Input.is_action_just_pressed("refresh"):
+		if current_url == "" or current_url == "about:blank":
+			to_about_blank()
+		elif current_url == "home.html":
+			to_home()
+		else:
+			send_http_request(current_url)
+			
 # request the html from a website
 func send_http_request(url):
 	url = unwrap_duckduckgo_url(url)
@@ -71,7 +94,7 @@ func _on_request_completed(result, response_code, _headers, body):
 	
 	document.clear()
 	document.append_text(bbcode_result["text"])
-	
+
 	if bbcode_result["title"]:
 		page_title.text = bbcode_result["title"]
 	else:
@@ -99,6 +122,31 @@ func unwrap_duckduckgo_url(url):
 	
 	return url
 
+# go to homepage
+func to_home():
+	last_url = current_url
+	current_url = "home.html"
+		
+	url_bar.text = ""
+	
+	var home_html = FileAccess.open("res://home.html", FileAccess.READ)
+	var bbcode_result = ToBbCode.to_bbcode(home_html.get_as_text(), document)
+
+	document.clear()
+	document.append_text(bbcode_result["text"])
+	
+	page_title.text = bbcode_result["title"]
+
+# go to about:blank
+func to_about_blank():
+	last_url = current_url
+	current_url = "about:blank"
+		
+	document.clear()
+	page_title.text = "about:blank"
+	url_bar.text = ""
+	return
+
 # go to clicked link
 func _on_document_meta_clicked(meta):
 	var url = resolve_url(str(meta))
@@ -106,7 +154,7 @@ func _on_document_meta_clicked(meta):
 
 # show tooltip
 func _on_document_meta_hover_started(meta):
-	hovered_meta = str(meta)
+	hovered_meta = unwrap_duckduckgo_url(resolve_url(str(meta)))
 	document.tooltip_text = hovered_meta
 
 # hide tooltip

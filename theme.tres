@@ -1,5 +1,17 @@
 [gd_resource type="Theme" format=3 uid="uid://dj7v6k65e8dsi"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ikrja"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oo0pn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_05tig"]
+bg_color = Color(0, 0, 0, 0.13333334)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g4mje"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1rmny"]
+bg_color = Color(0, 0, 0, 0.26666668)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vj6dk"]
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -103,6 +115,15 @@ content_margin_right = 5.0
 bg_color = Color(0.4700758, 0.47007585, 0.47007567, 1)
 
 [resource]
+Button/colors/font_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_color = Color(0, 0, 0, 1)
+Button/colors/font_pressed_color = Color(0, 0, 0, 1)
+Button/font_sizes/font_size = 16
+Button/styles/disabled = SubResource("StyleBoxEmpty_ikrja")
+Button/styles/focus = SubResource("StyleBoxEmpty_oo0pn")
+Button/styles/hover = SubResource("StyleBoxFlat_05tig")
+Button/styles/normal = SubResource("StyleBoxEmpty_g4mje")
+Button/styles/pressed = SubResource("StyleBoxFlat_1rmny")
 HScrollBar/styles/grabber = SubResource("StyleBoxFlat_vj6dk")
 HScrollBar/styles/scroll = SubResource("StyleBoxFlat_110ce")
 LineEdit/colors/caret_color = Color(0, 0, 0, 1)
