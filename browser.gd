@@ -1,19 +1,34 @@
-extends Node
+extends Node2D
 
 const ToBbCode = preload("uid://duach83yc561m")
 
 @onready var document: RichTextLabel = $Document
+@onready var url_bar: TextEdit = $URLBar
 
 var current_url = ""
 var last_url = ""
+
+var hovered_meta = ""
 
 # send a http request on ready
 func _ready():
 	send_http_request("https://wikipedia.org/")
 
+# handle input
+func _process(delta):
+	if Input.is_action_just_pressed("ui_accept"):
+		send_http_request(url_bar.text.strip_escapes())
+	
+	if Input.is_action_just_pressed("back"):
+		send_http_request(last_url)
+
 # request the html from a website
 func send_http_request(url):
+	last_url = current_url
+	
 	current_url = url
+	url_bar.text = current_url
+	url_bar.release_focus()
 	
 	var http = HTTPRequest.new()
 	add_child(http)
@@ -25,7 +40,7 @@ func send_http_request(url):
 		document.text = "[wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]"
 
 # when compleated, show it
-func _on_request_completed(result, response_code, headers, body):
+func _on_request_completed(result, response_code, _headers, body):
 	if result != HTTPRequest.RESULT_SUCCESS:
 		document.text = "[wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]"
 		return
@@ -42,24 +57,33 @@ func _on_request_completed(result, response_code, headers, body):
 		return
 
 	var html = (body.get_string_from_utf8())
-	var in_bbcode = ToBbCode.to_bbcode(html, document)["text"]
+	var bbcode_result = await ToBbCode.to_bbcode(html, document)
+	var in_bbcode = bbcode_result["text"]
 	
 	document.text = in_bbcode
+	await document.finished
+	document.scroll_to_line(0)
 
 # go to clicked link
 func _on_document_meta_clicked(meta):
-	var url = resolve_url(str(meta), current_url)
+	var url = resolve_url(str(meta))
 	send_http_request(url)
 
 # show tooltip
 func _on_document_meta_hover_started(meta):
-	document.tooltip_text = str(meta)
+	hovered_meta = str(meta)
+	document.tooltip_text = hovered_meta
 
 # hide tooltip
-func _on_document_meta_hover_ended():
+func _on_document_meta_hover_ended(_meta):
+	hovered_meta = ""
 	document.tooltip_text = ""
 
-func resolve_url(url, current_url):
+func resolve_url(url):
+	# in-page link, does not acctualy work
+	if url.begins_with("#"):
+		return current_url.split("#")[0] + url
+	
 	# already absolute
 	if url.begins_with("http://") or url.begins_with("https://"):
 		return url
@@ -93,10 +117,13 @@ func resolve_url(url, current_url):
 
 # get http error cat
 func load_error_cat(code):
+	return await get_img("https://http.cat/" + str(code) + ".jpg")
+
+func get_img(url):
 	var http = HTTPRequest.new()
 	add_child(http)
 
-	var error = http.request("https://http.cat/" + str(code) + ".jpg")
+	var error = http.request(url)
 	
 	# check for errors
 	if error != OK:
@@ -115,11 +142,15 @@ func load_error_cat(code):
 
 	if response_code < 200 or response_code >= 300:
 		return null
-
+	
 	var image = Image.new()
-	error = image.load_jpg_from_buffer(body)
 
-	if error != OK:
+	var img_error = image.load_png_from_buffer(body)
+
+	if img_error != OK:
+		img_error = image.load_jpg_from_buffer(body)
+
+	if img_error != OK:
 		return null
 
 	# return the img

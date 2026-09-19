@@ -40,7 +40,12 @@ static func to_bbcode(html, document):
 		"em": "i",
 		"u": "u",
 		"s": "s",
-		"del": "s"
+		"del": "s",
+		"ul": "ul",
+		"ol": "ol",
+		"li": "p",
+		"code": "code",
+		"blockquote": "indent"
 	}
 
 	for tag in html_to_bbcode:
@@ -76,7 +81,6 @@ static func to_bbcode(html, document):
 	cleaned = link_regex.sub(cleaned, "[url=$1][color=#0000ee]$2[/color][/url]", true)
 	
 	# common html entities
-	
 	for entity in HtmlEntites.html_entities:
 		cleaned = cleaned.replace(entity, HtmlEntites.html_entities[entity])
 	
@@ -86,7 +90,7 @@ static func to_bbcode(html, document):
 	
 	# hr lines
 	var hr_regex = RegEx.create_from_string("(?i)<hr\\b[^>]*>")
-	cleaned = hr_regex.sub(cleaned, "[hr width=100%]", true)
+	cleaned = hr_regex.sub(cleaned, "[br][hr width=100%]", true)
 	
 	# remove any remaining html tags
 	var unknown_tag_regex = RegEx.create_from_string("(?is)<[^>]+>")
