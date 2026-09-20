@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://ue0aaiga5gn6"]
+
+[ext_resource type="Texture2D" uid="uid://clffsnycngfry" path="res://assets/ring-icon.png" id="1_kke46"]
+
+[sub_resource type="Animation" id="Animation_1cp4b"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_c7hx5"]
+resource_name = "spin"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 6.2831855]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_62wbb"]
+_data = {
+&"RESET": SubResource("Animation_1cp4b"),
+&"spin": SubResource("Animation_c7hx5")
+}
+
+[node name="Spinner" type="TextureProgressBar" unique_id=392093373]
+offset_right = 64.0
+offset_bottom = 64.0
+pivot_offset = Vector2(32, 32)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+max_value = 10.0
+value = 4.0
+fill_mode = 4
+nine_patch_stretch = true
+texture_progress = ExtResource("1_kke46")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=996099113]
+libraries/ = SubResource("AnimationLibrary_62wbb")
+autoplay = &"spin"

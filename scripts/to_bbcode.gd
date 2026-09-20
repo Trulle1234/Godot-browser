@@ -10,7 +10,6 @@ static func to_bbcode(html, document):
 	
 	if title_match: 
 		title = title_match.get_string(1).strip_edges()
-		
 		html = html.erase(title_match.get_start(), title_match.get_end() - title_match.get_start())
 	
 	# remove everything outside of body
@@ -82,18 +81,35 @@ static func to_bbcode(html, document):
 	var link_regex = RegEx.create_from_string('(?is)<a[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>')
 	cleaned = link_regex.sub(cleaned, "[url=$1][color=#0000ee]$2[/color][/url]", true)
 	
-	# common html entities
-	for entity in HtmlEntites.html_entities:
-		cleaned = cleaned.replace(entity, HtmlEntites.html_entities[entity])
+	# images link to a page with only the image, as thats easier/possible to display
+	var img_regex = RegEx.create_from_string('(?is)<img\\b[^>]*>')
+	var img_matches = img_regex.search_all(cleaned)
 	
-	# hex html entities
-	var hex_entity_regex = RegEx.create_from_string("&#x([0-9a-fA-F]+);")
-	var hex_matches = hex_entity_regex.search_all(cleaned)
+	var src_regex = RegEx.create_from_string('(?i)src=["\']([^"\']+)["\']')
+	var alt_regex = RegEx.create_from_string('(?i)alt=["\']([^"\']*)["\']')
 	
-	for i in range(hex_matches.size() - 1, -1, -1):
-		var match = hex_matches[i]
+	for i in range(img_matches.size() - 1, -1, -1):
+		var img_match = img_matches[i]
+		var img_tag = img_match.get_string()
 		
-		cleaned = (cleaned.substr(0, match.get_start()) + "[char=" + str(match.get_string(1)) + "]" + cleaned.substr(match.get_end()))
+		var src_match = src_regex.search(img_tag)
+		var alt_match = alt_regex.search(img_tag)
+		
+		var src = src_match.get_string(1) if src_match else ""
+		var alt = alt_match.get_string(1) if alt_match else ""
+		
+		if src == "":
+			continue
+		
+		var replacement = "[url=" + src + "][color=#eeab00][IMG] " + alt + "[/color][/url]"
+		
+		cleaned = ( cleaned.substr(0, img_match.get_start()) + replacement + cleaned.substr(img_match.get_end()))
+	
+	# html entities
+	cleaned = solve_entites(cleaned)
+	
+	# entites also in title
+	title = solve_entites(title)
 	
 	# br newlines
 	var br_regex = RegEx.create_from_string("(?i)<br\\b[^>]*>")
@@ -129,6 +145,22 @@ static func to_bbcode(html, document):
 		"text": cleaned
 		}
 
+static func solve_entites(text):
+	# common text entites
+	for entity in HtmlEntites.html_entities:
+		text = text.replace(entity, HtmlEntites.html_entities[entity])
+	
+	# hex html entities
+	var hex_entity_regex = RegEx.create_from_string("&#x([0-9a-fA-F]+);")
+	var hex_matches = hex_entity_regex.search_all(text)
+	
+	for i in range(hex_matches.size() - 1, -1, -1):
+		var match = hex_matches[i]
+		
+		text = (text.substr(0, match.get_start()) + "[char=" + str(match.get_string(1)) + "]" + text.substr(match.get_end()))
+	
+	return text
+
 static func clean(text):
 	# duckduckgo
 	text = text.replace(
@@ -140,10 +172,15 @@ static func clean(text):
 		"[url=//duckduckgo.com/feedback.html][color=#0000ee]Feedback[/color][/url]"
 	)
 	
-	# simple wikipedia
+	# simple en wikipedia
 	text = text.replace(
-		" [p][/p][url=#bodyContent][color=#0000ee]Jump to content[/color][/url] [p] [p] [p]  [p]   Main menu  [p] [p] [p] [p] [p]Main menu[/p] move to sidebar hide [/p] [p] [p] Getting around [/p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee]Main page[/color][/url][/ul][ul][url=/wiki/Wikipedia:Simple_start][color=#0000ee]Simple start[/color][/url][/ul][ul][url=/wiki/Wikipedia:Simple_talk][color=#0000ee]Simple talk[/color][/url][/ul][ul][url=/wiki/Special:RecentChanges][color=#0000ee]New changes[/color][/url][/ul][ul][url=/wiki/Special:Random][color=#0000ee]Show any page[/color][/url][/ul][ul][url=/wiki/Help:Contents][color=#0000ee]Help[/color][/url][/ul][ul][url=//simple.wikipedia.org/wiki/Wikipedia:Contact_us][color=#0000ee]Contact us[/color][/url][/ul][ul][url=/wiki/Wikipedia:About][color=#0000ee]About Wikipedia[/color][/url][/ul][ul][url=/wiki/Special:SpecialPages][color=#0000ee]Special pages[/color][/url][/ul]  [/p] [/p] [/p] [/p] [/p] [/p]  [url=/wiki/Main_Page][color=#0000ee]      [/color][/url] [/p] [p] [p] [url=/wiki/Special:Search][color=#0000ee] Search [/color][/url] [p] [p]  [p] [p]   [/p]  [/p] Search  [/p] [/p] [/p]  [p] [p] [p]   [/p] [/p] [p] [p]   [/p] [/p]  [p]   Appearance  [p] [p] [/p] [/p] [/p]  [p] [p]   [/p] [/p] [p] [p]  [ul][url=https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=simple.wikipedia.org&uselang=en][color=#0000ee]Give to Wikipedia[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:CreateAccount&returnto=Main+Page][color=#0000ee]Create account[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:UserLogin&returnto=Main+Page][color=#0000ee]Log in[/color][/url] [/ul]  [/p] [/p] [/p] [p]   Personal tools  [p] [p] [p]  [ul][url=https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=simple.wikipedia.org&uselang=en][color=#0000ee] Give to Wikipedia[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:CreateAccount&returnto=Main+Page][color=#0000ee] Create account[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:UserLogin&returnto=Main+Page][color=#0000ee] Log in[/color][/url] [/ul]  [/p] [/p] [/p] [/p]  [/p] [/p] [/p] [p] [p] [p] [p][/p] [/p] [p] [p] [p]  [p] [/p]  [/p] [/p] [/p] [p]  [p] [p][font_size=32.0][b]Main Page[/b][/font_size][/p] [p] [/p] [/p] [p] [p] [p]  [p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee]Main Page[/color][/url] [/ul] [ul][url=/wiki/Talk:Main_Page][color=#0000ee]Talk[/color][/url] [/ul]  [/p] [/p] [p]  English  [p] [p] [p]   [/p] [/p] [/p] [/p]  [/p] [p]  [p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee]Read[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=edit][color=#0000ee]View source[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=history][color=#0000ee]View history[/color][/url] [/ul]  [/p] [/p]   [p]   Tools  [p] [p] [p] [p] [p]Tools[/p] move to sidebar hide [/p] [p] [p] Actions [/p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee] Read[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=edit][color=#0000ee] View source[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=history][color=#0000ee] View history[/color][/url] [/ul]  [/p] [/p] [p] [p] General [/p] [p]  [ul][url=/wiki/Special:WhatLinksHere/Main_Page][color=#0000ee]What links here[/color][/url][/ul][ul][url=/wiki/Special:RecentChangesLinked/Main_Page][color=#0000ee]Related changes[/color][/url][/ul][ul][url=//commons.wikimedia.org/wiki/Special:UploadWizard][color=#0000ee]Upload file[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&oldid=10710583][color=#0000ee]Permanent link[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&action=info][color=#0000ee]Page information[/color][/url][/ul][ul][url=/w/index.php?title=Special:CiteThisPage&page=Main_Page&id=10710583&wpFormIdentifier=titleform][color=#0000ee]Cite this page[/color][/url][/ul][ul][url=/w/index.php?title=Special:UrlShortener&url=https%3A%2F%2Fsimple.wikipedia.org%2Fwiki%2FMain_Page][color=#0000ee]Get shortened URL[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&useparsoid=0][color=#0000ee]Switch to legacy parser[/color][/url][/ul]  [/p] [/p] [p] [p] Print/export [/p] [p]  [ul][url=/w/index.php?title=Special:Book&bookcmd=book_creator&referer=Main+Page][color=#0000ee]Make a book[/color][/url][/ul][ul][url=/w/index.php?title=Special:DownloadAsPdf&page=Main_Page&action=show-download-screen][color=#0000ee]Download as PDF[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&printable=yes][color=#0000ee]Page for printing[/color][/url][/ul]  [/p] [/p] [p] [p] In other projects [/p] [p]  [ul][url=https://abstract.wikipedia.org/wiki/Abstract_Wikipedia:Main_page][color=#0000ee]Abstract Wikipedia[/color][/url][/ul][ul][url=https://commons.wikimedia.org/wiki/Main_Page][color=#0000ee]Wikimedia Commons[/color][/url][/ul][ul][url=https://foundation.wikimedia.org/wiki/Home][color=#0000ee]Wikimedia Foundation Governance Wiki[/color][/url][/ul][ul][url=https://www.mediawiki.org/wiki/MediaWiki][color=#0000ee]MediaWiki[/color][/url][/ul][ul][url=https://meta.wikimedia.org/wiki/Main_Page][color=#0000ee]Meta-Wiki[/color][/url][/ul][ul][url=https://outreach.wikimedia.org/wiki/Main_Page][color=#0000ee]Wikimedia Outreach[/color][/url][/ul][ul][url=https://wikisource.org/wiki/Wikisource:Main_Page][color=#0000ee]Multilingual Wikisource[/color][/url][/ul][ul][url=https://species.wikimedia.org/wiki/Main_Page][color=#0000ee]Wikispecies[/color][/url][/ul][ul][url=https://www.wikidata.org/wiki/Wikidata:Main_Page][color=#0000ee]Wikidata[/color][/url][/ul][ul][url=https://www.wikifunctions.org/wiki/Wikifunctions:Main_Page][color=#0000ee]Wikifunctions[/color][/url][/ul][ul][url=https://wikimania.wikimedia.org/wiki/Wikimania][color=#0000ee]Wikimania[/color][/url][/ul][ul][url=https://simple.wiktionary.org/wiki/Main_Page][color=#0000ee]Wiktionary[/color][/url][/ul][ul][url=https://www.wikidata.org/wiki/Special:EntityPage/Q5296][color=#0000ee]Wikidata item[/color][/url][/ul]  [/p] [/p] [/p] [/p] [/p] [/p]  [/p] [/p] [/p] [p] [p]  [p] [/p]   [p] [p] [p] [p]Appearance[/p] move to sidebar hide [/p] [/p] [/p]  [/p] [/p] [p] [p] [p]From Simple English Wikipedia, the free encyclopedia[/p] [/p] [p][p][/p][/p] [p][p]    ",
+		" [p][/p][url=#bodyContent][color=#0000ee]Jump to content[/color][/url] [p] [p] [p]  [p]   Main menu  [p] [p] [p] [p] [p]Main menu[/p] move to sidebar hide [/p] [p] [p] Getting around [/p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee]Main page[/color][/url][/ul][ul][url=/wiki/Wikipedia:Simple_start][color=#0000ee]Simple start[/color][/url][/ul][ul][url=/wiki/Wikipedia:Simple_talk][color=#0000ee]Simple talk[/color][/url][/ul][ul][url=/wiki/Special:RecentChanges][color=#0000ee]New changes[/color][/url][/ul][ul][url=/wiki/Special:Random][color=#0000ee]Show any page[/color][/url][/ul][ul][url=/wiki/Help:Contents][color=#0000ee]Help[/color][/url][/ul][ul][url=//simple.wikipedia.org/wiki/Wikipedia:Contact_us][color=#0000ee]Contact us[/color][/url][/ul][ul][url=/wiki/Wikipedia:About][color=#0000ee]About Wikipedia[/color][/url][/ul][ul][url=/wiki/Special:SpecialPages][color=#0000ee]Special pages[/color][/url][/ul]  [/p] [/p] [/p] [/p] [/p] [/p]  [url=/wiki/Main_Page][color=#0000ee] [url=/static/images/icons/wikipedia.png][color=#eeab00][IMG] [/color][/url]  [url=/static/images/mobile/copyright/wikipedia-wordmark-en.svg][color=#eeab00][IMG] Wikipedia[/color][/url] [url=/static/images/mobile/copyright/wikipedia-tagline-simple.svg][color=#eeab00][IMG] The Free Encyclopedia[/color][/url]  [/color][/url] [/p] [p] [p] [url=/wiki/Special:Search][color=#0000ee] Search [/color][/url] [p] [p]  [p] [p]   [/p]  [/p] Search  [/p] [/p] [/p]  [p] [p] [p]   [/p] [/p] [p] [p]   [/p] [/p]  [p]   Appearance  [p] [p] [/p] [/p] [/p]  [p] [p]   [/p] [/p] [p] [p]  [ul][url=https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=simple.wikipedia.org&uselang=en][color=#0000ee]Give to Wikipedia[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:CreateAccount&returnto=Main+Page][color=#0000ee]Create account[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:UserLogin&returnto=Main+Page][color=#0000ee]Log in[/color][/url] [/ul]  [/p] [/p] [/p] [p]   Personal tools  [p] [p] [p]  [ul][url=https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=simple.wikipedia.org&uselang=en][color=#0000ee] Give to Wikipedia[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:CreateAccount&returnto=Main+Page][color=#0000ee] Create account[/color][/url] [/ul] [ul][url=/w/index.php?title=Special:UserLogin&returnto=Main+Page][color=#0000ee] Log in[/color][/url] [/ul]  [/p] [/p] [/p] [/p]  [/p] [/p] [/p] [p] [p] [p] [p][/p] [/p] [p] [p] [p]  [p] [/p]  [/p] [/p] [/p] [p]  [p] [p][font_size=32.0][b]Main Page[/b][/font_size][/p] [p] [/p] [/p] [p] [p] [p]  [p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee]Main Page[/color][/url] [/ul] [ul][url=/wiki/Talk:Main_Page][color=#0000ee]Talk[/color][/url] [/ul]  [/p] [/p] [p]  English  [p] [p] [p]   [/p] [/p] [/p] [/p]  [/p] [p]  [p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee]Read[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=edit][color=#0000ee]View source[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=history][color=#0000ee]View history[/color][/url] [/ul]  [/p] [/p]   [p]   Tools  [p] [p] [p] [p] [p]Tools[/p] move to sidebar hide [/p] [p] [p] Actions [/p] [p]  [ul][url=/wiki/Main_Page][color=#0000ee] Read[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=edit][color=#0000ee] View source[/color][/url] [/ul] [ul][url=/w/index.php?title=Main_Page&action=history][color=#0000ee] View history[/color][/url] [/ul]  [/p] [/p] [p] [p] General [/p] [p]  [ul][url=/wiki/Special:WhatLinksHere/Main_Page][color=#0000ee]What links here[/color][/url][/ul][ul][url=/wiki/Special:RecentChangesLinked/Main_Page][color=#0000ee]Related changes[/color][/url][/ul][ul][url=//commons.wikimedia.org/wiki/Special:UploadWizard][color=#0000ee]Upload file[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&oldid=10710583][color=#0000ee]Permanent link[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&action=info][color=#0000ee]Page information[/color][/url][/ul][ul][url=/w/index.php?title=Special:CiteThisPage&page=Main_Page&id=10710583&wpFormIdentifier=titleform][color=#0000ee]Cite this page[/color][/url][/ul][ul][url=/w/index.php?title=Special:UrlShortener&url=https%3A%2F%2Fsimple.wikipedia.org%2Fwiki%2FMain_Page][color=#0000ee]Get shortened URL[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&useparsoid=0][color=#0000ee]Switch to legacy parser[/color][/url][/ul]  [/p] [/p] [p] [p] Print/export [/p] [p]  [ul][url=/w/index.php?title=Special:Book&bookcmd=book_creator&referer=Main+Page][color=#0000ee]Make a book[/color][/url][/ul][ul][url=/w/index.php?title=Special:DownloadAsPdf&page=Main_Page&action=show-download-screen][color=#0000ee]Download as PDF[/color][/url][/ul][ul][url=/w/index.php?title=Main_Page&printable=yes][color=#0000ee]Page for printing[/color][/url][/ul]  [/p] [/p] [p] [p] In other projects [/p] [p]  [ul][url=https://abstract.wikipedia.org/wiki/Abstract_Wikipedia:Main_page][color=#0000ee]Abstract Wikipedia[/color][/url][/ul][ul][url=https://commons.wikimedia.org/wiki/Main_Page][color=#0000ee]Wikimedia Commons[/color][/url][/ul][ul][url=https://foundation.wikimedia.org/wiki/Home][color=#0000ee]Wikimedia Foundation Governance Wiki[/color][/url][/ul][ul][url=https://www.mediawiki.org/wiki/MediaWiki][color=#0000ee]MediaWiki[/color][/url][/ul][ul][url=https://meta.wikimedia.org/wiki/Main_Page][color=#0000ee]Meta-Wiki[/color][/url][/ul][ul][url=https://outreach.wikimedia.org/wiki/Main_Page][color=#0000ee]Wikimedia Outreach[/color][/url][/ul][ul][url=https://wikisource.org/wiki/Wikisource:Main_Page][color=#0000ee]Multilingual Wikisource[/color][/url][/ul][ul][url=https://species.wikimedia.org/wiki/Main_Page][color=#0000ee]Wikispecies[/color][/url][/ul][ul][url=https://www.wikidata.org/wiki/Wikidata:Main_Page][color=#0000ee]Wikidata[/color][/url][/ul][ul][url=https://www.wikifunctions.org/wiki/Wikifunctions:Main_Page][color=#0000ee]Wikifunctions[/color][/url][/ul][ul][url=https://wikimania.wikimedia.org/wiki/Wikimania][color=#0000ee]Wikimania[/color][/url][/ul][ul][url=https://simple.wiktionary.org/wiki/Main_Page][color=#0000ee]Wiktionary[/color][/url][/ul][ul][url=https://www.wikidata.org/wiki/Special:EntityPage/Q5296][color=#0000ee]Wikidata item[/color][/url][/ul]  [/p] [/p] [/p] [/p] [/p] [/p]  [/p] [/p] [/p] [p] [p]  [p] [/p]   [p] [p] [p] [p]Appearance[/p] move to sidebar hide [/p] [/p] [/p]  [/p] [/p] [p] [p] [p]From Simple English Wikipedia, the free encyclopedia[/p] [/p] [p][p][/p][/p] [p][p]",
 		""
 	)
-	return text
 	
+	# hacker news
+	text = text.replace(
+		"[url=https://news.ycombinator.com][color=#0000ee][/color][/url] [b][url=news][color=#0000ee]Hacker News[/color][/url][/b][url=newest][color=#0000ee]new[/color][/url] | [url=front][color=#0000ee]past[/color][/url] | [url=newcomments][color=#0000ee]comments[/color][/url] | [url=ask][color=#0000ee]ask[/color][/url] | [url=show][color=#0000ee]show[/color][/url] | [url=jobs][color=#0000ee]jobs[/color][/url]",
+		"[url=https://news.ycombinator.com][color=#0000ee][/color][/url] [b][url=news][color=#0000ee]Hacker News[/color][/url]  [/b][url=newest][color=#0000ee]new[/color][/url] | [url=front][color=#0000ee]past[/color][/url] | [url=newcomments][color=#0000ee]comments[/color][/url] | [url=ask][color=#0000ee]ask[/color][/url] | [url=show][color=#0000ee]show[/color][/url] | [url=jobs][color=#0000ee]jobs[/color][/url]"
+	)
+	return text

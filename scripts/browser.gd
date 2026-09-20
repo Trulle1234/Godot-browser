@@ -5,6 +5,8 @@ const ToBbCode = preload("uid://duach83yc561m")
 @onready var document: RichTextLabel = $Document
 @onready var url_bar: LineEdit = $URLBar
 @onready var page_title: Label = $PageTitle
+@onready var reload_button: Button = $ReloadButton
+@onready var spinner: TextureProgressBar = $Spinner
 
 var current_url = "home.html"
 var last_url = "home.html"
@@ -12,10 +14,11 @@ var last_url = "home.html"
 var hovered_meta = ""
 
 func _ready() -> void:
+	spinner.hide()
 	to_home()
 
 # handle input
-func _process(_delta):
+func _process(_delta):	
 	if Input.is_action_just_pressed("enter") and url_bar.has_focus():
 		var url_bar_text = url_bar.text.strip_edges()
 	
@@ -46,9 +49,14 @@ func _process(_delta):
 			to_home()
 		else:
 			send_http_request(current_url)
+	
+	elif Input.is_action_just_pressed("home"):
+		to_home()
 			
 # request the html from a website
 func send_http_request(url):
+	reload_button.hide()
+	spinner.show()
 	url = unwrap_duckduckgo_url(url)
 	last_url = current_url
 	
@@ -56,26 +64,41 @@ func send_http_request(url):
 	url_bar.text = current_url
 	url_bar.release_focus()
 	
+	if is_image_url(url):
+		load_image(url)
+		
+		reload_button.show()
+		spinner.hide()
+		return
+	
 	var http = HTTPRequest.new()
 	add_child(http)
 
-	http.request_completed.connect(_on_request_completed)
+	http.request_completed.connect(_on_request_completed.bind(http))
 	var error = http.request(url)
 
 	if error != OK:
 		document.clear()
 		document.append_text("[br][wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]")
 		page_title.text = "Adress not valid"
+		
+		reload_button.show()
+		spinner.hide()
 
 # when compleated, show it
-func _on_request_completed(result, response_code, _headers, body):
+func _on_request_completed(result, response_code, _headers, body, http):
+	http.queue_free()
+	
 	if result != HTTPRequest.RESULT_SUCCESS:
 		document.clear()
 		document.append_text("[br][wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]")
 		page_title.text = "Could not connect"
+		
+		reload_button.show()
+		spinner.hide()
 		return
 		
-	if response_code != 200:
+	if response_code < 200 or response_code >= 300:
 		var error_cat = await load_error_cat(response_code)
 		
 		if error_cat:
@@ -87,6 +110,9 @@ func _on_request_completed(result, response_code, _headers, body):
 			document.append_text("[br][wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
 		
 		page_title.text = "HTTP error " + str(response_code)
+		
+		reload_button.show()
+		spinner.hide()
 		return
 
 	var html = (body.get_string_from_utf8())
@@ -102,6 +128,9 @@ func _on_request_completed(result, response_code, _headers, body):
 	
 	await document.finished
 	document.scroll_to_line(0)
+	
+	reload_button.show()
+	spinner.hide()
 
 func unwrap_duckduckgo_url(url):
 	# only hadle duckduckgo redidrects
@@ -202,6 +231,26 @@ func resolve_url(url):
 func load_error_cat(code):
 	return await get_img("https://http.cat/" + str(code) + ".jpg")
 
+func load_image(url):
+	var img = await get_img(url)
+	
+	document.clear()
+	document.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
+	document.append_text("[br][br]")
+	document.add_image(img, 0, 0, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "Image", false, "")
+
+func is_image_url(url: String) -> bool:
+	var clean_url = url.split("?")[0].split("#")[0].to_lower()
+	
+	return ( 
+		clean_url.ends_with(".png")
+		or clean_url.ends_with(".png")
+		or clean_url.ends_with(".jpg")
+		or clean_url.ends_with(".jpeg")
+		or clean_url.ends_with(".webp")
+		or clean_url.ends_with(".svg")
+	)
+
 func get_img(url):
 	var http = HTTPRequest.new()
 	add_child(http)
@@ -227,11 +276,33 @@ func get_img(url):
 		return null
 	
 	var image = Image.new()
+	
+	var img_error = image.load_svg_from_buffer(body, 2.0)
+	
+	if img_error != OK:
+		img_error = image.load_png_from_buffer(body)
+		
+	if img_error != OK:
+		img_error = image.load_jpg_from_buffer(body)
 
-	var img_error = image.load_jpg_from_buffer(body)
+	if img_error != OK:
+		img_error = image.load_webp_from_buffer(body)
 
 	if img_error != OK:
 		return null
 
 	# return the img
 	return ImageTexture.create_from_image(image)
+
+# go home on home button press
+func _on_home_button_pressed() -> void:
+	to_home()
+
+# reload on reload button press
+func reload_page():
+	if current_url == "" or current_url == "about:blank":
+		to_about_blank()
+	elif current_url == "home.html":
+		to_home()
+	else:
+		send_http_request(current_url)
