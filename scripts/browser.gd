@@ -7,58 +7,80 @@ const ToBbCode = preload("uid://duach83yc561m")
 @onready var page_title: Label = $PageTitle
 @onready var reload_button: Button = $ReloadButton
 @onready var spinner: TextureProgressBar = $Spinner
+@onready var inverted: ColorRect = $Inverted
 
 var current_url = "home.html"
-var last_url = "home.html"
+
+var history = ["home.html"]
+var history_index = 0
 
 var hovered_meta = ""
 
 func _ready() -> void:
-	spinner.hide()
-	to_home()
+	load_history_url(current_url)
 
 # handle input
-func _process(_delta):	
+func _process(_delta) -> void:
 	if Input.is_action_just_pressed("enter") and url_bar.has_focus():
 		var url_bar_text = url_bar.text.strip_edges()
-	
+		var normalized_url = normazlie_url(url_bar_text)
+		
 		if url_bar_text == "" or url_bar_text == "about:blank":
 			to_about_blank()
 		elif url_bar_text == "home.html":
 			to_home()
-		elif url_bar_text.begins_with("http"):
-			send_http_request(url_bar_text)
+		elif normalized_url:
+			send_http_request(normalized_url)
 		else:
 			send_http_request(
 				"https://html.duckduckgo.com/html/?q=" +
-				url_bar_text.replace(" ", "%20")
+				url_bar.text.strip_edges().replace(" ", "%20")
 			)
 	
 	elif Input.is_action_just_pressed("back"):
-		if last_url == "" or last_url == "about:blank":
-			to_about_blank()
-		elif last_url == "home.html":
-			to_home()
-		else:
-			send_http_request(last_url)
+		go_back()
+		
+	elif Input.is_action_just_pressed("forward"):
+		go_forward()
 	
 	elif Input.is_action_just_pressed("refresh"):
-		if current_url == "" or current_url == "about:blank":
-			to_about_blank()
-		elif current_url == "home.html":
-			to_home()
-		else:
-			send_http_request(current_url)
+		load_history_url(current_url)
 	
 	elif Input.is_action_just_pressed("home"):
 		to_home()
-			
+	
+	elif Input.is_action_just_pressed("invert"):
+		if inverted.visible:
+			inverted.hide()
+		else:
+			inverted.show()
+
+# keep track of history
+func add_to_history(url):
+	if history_index < history.size() - 1:
+		history.resize(history_index + 1)
+	
+	if history.is_empty() or history.back() != url:
+		history.append(url)
+		history_index = history.size() - 1
+
+# load url from history
+func load_history_url(url):
+	if url == "" or url == "about:blank":
+		to_about_blank(false)
+	elif url == "home.html":
+		to_home(false)
+	else:
+		send_http_request(url, false)
+
 # request the html from a website
-func send_http_request(url):
+func send_http_request(url, add_history=true):
 	reload_button.hide()
 	spinner.show()
 	url = unwrap_duckduckgo_url(url)
-	last_url = current_url
+	
+	if add_history:
+		add_to_history(url)
 	
 	current_url = url
 	url_bar.text = current_url
@@ -104,7 +126,7 @@ func _on_request_completed(result, response_code, _headers, body, http):
 		if error_cat:
 			document.clear()
 			document.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
-			document.add_image(error_cat, 0, 0, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "error_cat", false, "")
+			document.add_image(error_cat, 0, 550, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "error_cat", false, "")
 		else:
 			document.clear()
 			document.append_text("[br][wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
@@ -116,7 +138,8 @@ func _on_request_completed(result, response_code, _headers, body, http):
 		return
 
 	var html = (body.get_string_from_utf8())
-	var bbcode_result = ToBbCode.to_bbcode(html, document)
+	var bbcode_result
+	bbcode_result = ToBbCode.to_bbcode(html, document)
 	
 	document.clear()
 	document.append_text(bbcode_result["text"])
@@ -132,6 +155,7 @@ func _on_request_completed(result, response_code, _headers, body, http):
 	reload_button.show()
 	spinner.hide()
 
+# sovle duckduckgo redicrects
 func unwrap_duckduckgo_url(url):
 	# only hadle duckduckgo redidrects
 	if not url.begins_with("https://duckduckgo.com/l/"):
@@ -152,10 +176,11 @@ func unwrap_duckduckgo_url(url):
 	return url
 
 # go to homepage
-func to_home():
-	last_url = current_url
+func to_home(add_history=true):
+	if add_history:
+		add_to_history("home.html")
+	
 	current_url = "home.html"
-		
 	url_bar.text = ""
 	
 	var home_html = FileAccess.open("res://home.html", FileAccess.READ)
@@ -167,14 +192,32 @@ func to_home():
 	page_title.text = bbcode_result["title"]
 
 # go to about:blank
-func to_about_blank():
-	last_url = current_url
+func to_about_blank(add_history=true):
+	if add_history:
+		add_to_history("about:blank")
+		
 	current_url = "about:blank"
 		
 	document.clear()
 	page_title.text = "about:blank"
 	url_bar.text = ""
 	return
+
+# go back in history
+func go_back():
+	if history_index <= 0:
+		return
+
+	history_index -= 1
+	load_history_url(history[history_index])
+
+# go forwasrd in history
+func go_forward():
+	if history_index >= history.size() - 1:
+		return
+
+	history_index += 1
+	load_history_url(history[history_index])
 
 # go to clicked link
 func _on_document_meta_clicked(meta):
@@ -191,6 +234,17 @@ func _on_document_meta_hover_ended(_meta):
 	hovered_meta = ""
 	document.tooltip_text = ""
 
+# urls work without https://
+func normazlie_url(url):
+	if url.begins_with("http://") or url.begins_with("https://"):
+		return url
+	
+	var regex = RegEx.create_from_string("^(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}(?::\\d+)?(?:/.*)?$")
+	if regex.search(url) != null:
+		return "https://" + url
+	
+	return ""
+		
 func resolve_url(url):
 	# in-page link, does not acctualy work
 	if url.begins_with("#"):
@@ -234,21 +288,27 @@ func load_error_cat(code):
 func load_image(url):
 	var img = await get_img(url)
 	
+	var size = Vector2(img.get_width(), img.get_height())
+	
+	var scale = min(1100 / size.x, 600 / size.y, 1.0)
+	var display_size = size * scale
+	
+	page_title.text = "Image - " + url
 	document.clear()
 	document.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
 	document.append_text("[br][br]")
-	document.add_image(img, 0, 0, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "Image", false, "")
+	document.add_image(img, int(display_size.x), int(display_size.y), Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "Image", false, "")
 
 func is_image_url(url: String) -> bool:
-	var clean_url = url.split("?")[0].split("#")[0].to_lower()
+	var clean_url = url
 	
 	return ( 
-		clean_url.ends_with(".png")
-		or clean_url.ends_with(".png")
-		or clean_url.ends_with(".jpg")
-		or clean_url.ends_with(".jpeg")
-		or clean_url.ends_with(".webp")
-		or clean_url.ends_with(".svg")
+		clean_url.contains(".png")
+		or clean_url.contains(".png")
+		or clean_url.contains(".jpg")
+		or clean_url.contains(".jpeg")
+		or clean_url.contains(".webp")
+		or clean_url.contains(".svg")
 	)
 
 func get_img(url):
@@ -298,11 +358,11 @@ func get_img(url):
 func _on_home_button_pressed() -> void:
 	to_home()
 
-# reload on reload button press
-func reload_page():
-	if current_url == "" or current_url == "about:blank":
-		to_about_blank()
-	elif current_url == "home.html":
-		to_home()
+func _on_reload_button_pressed() -> void:
+	load_history_url(current_url)
+
+func _on_inver_button_pressed() -> void:
+	if inverted.visible:
+		inverted.hide()
 	else:
-		send_http_request(current_url)
+		inverted.show()

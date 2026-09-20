@@ -24,6 +24,9 @@ content_margin_right = 3.0
 content_margin_bottom = 3.0
 bg_color = Color(0, 0, 0, 0.1254902)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wvktn"]
+content_margin_bottom = 2.0
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vj6dk"]
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -56,7 +59,7 @@ corner_radius_bottom_left = 4
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1x85"]
 content_margin_left = 58.0
 content_margin_top = 4.0
-content_margin_right = 8.0
+content_margin_right = 23.0
 content_margin_bottom = 2.0
 bg_color = Color(0.96035105, 0.96035105, 0.9603508, 1)
 border_width_left = 2
@@ -136,6 +139,16 @@ Button/styles/focus = SubResource("StyleBoxEmpty_oo0pn")
 Button/styles/hover = SubResource("StyleBoxFlat_05tig")
 Button/styles/normal = SubResource("StyleBoxEmpty_g4mje")
 Button/styles/pressed = SubResource("StyleBoxFlat_1rmny")
+CheckButton/colors/button_checked_color = Color(0.7490196, 0.7490196, 0.7490196, 1)
+CheckButton/colors/button_unchecked_color = Color(0.9607843, 0.9607843, 0.9607843, 1)
+CheckButton/colors/font_color = Color(0, 0, 0, 1)
+CheckButton/colors/font_hover_color = Color(0, 0, 0, 1)
+CheckButton/colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+CheckButton/colors/font_pressed_color = Color(0, 0, 0, 1)
+CheckButton/styles/hover = SubResource("StyleBoxEmpty_wvktn")
+CheckButton/styles/hover_pressed = SubResource("StyleBoxEmpty_wvktn")
+CheckButton/styles/normal = SubResource("StyleBoxEmpty_wvktn")
+CheckButton/styles/pressed = SubResource("StyleBoxEmpty_wvktn")
 HScrollBar/styles/grabber = SubResource("StyleBoxFlat_vj6dk")
 HScrollBar/styles/scroll = SubResource("StyleBoxFlat_110ce")
 LineEdit/colors/caret_color = Color(0, 0, 0, 1)
