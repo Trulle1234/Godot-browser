@@ -41,5 +41,14 @@ const html_entities = {
 	"&larr;": "←",
 	"&rarr;": "→",
 	"&uarr;": "↑",
-	"&darr;": "↓"
+	"&darr;": "↓",
+	
+	# also allow some without semioclon
+	"&copy": "©",
+	"&reg": "®",
+	"&amp": "&",
+	"&lt": "<",
+	"&gt": ">",
+	"&quot": '"',
+	"&nbsp": " "
 }

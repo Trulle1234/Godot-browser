@@ -2,8 +2,20 @@ extends Node2D
 
 const ToBbCode = preload("uid://duach83yc561m")
 
+const GLOBE = preload("uid://bdtmxuok1p04h")
+
+const font_themes = [
+	preload("uid://dj7v6k65e8dsi"),
+	preload("uid://1qt30pm2eowt"),
+	preload("uid://dslkkbml86nd6"),
+	preload("uid://v4g80iqeg3p4"),
+	preload("uid://bhwyidk3dq8a3")
+]
+var font_index = 0
+
 @onready var document: RichTextLabel = $Document
 @onready var url_bar: LineEdit = $URLBar
+@onready var favicon: TextureRect = $Favicon
 @onready var page_title: Label = $PageTitle
 @onready var reload_button: Button = $ReloadButton
 @onready var spinner: TextureProgressBar = $Spinner
@@ -17,6 +29,12 @@ var history_index = 0
 var hovered_meta = ""
 
 func _ready() -> void:
+	var doc_builtin_menu = document.get_menu()
+	var bar_builtin_menu = url_bar.get_menu()
+	
+	bar_builtin_menu.prefer_native_menu = true
+	doc_builtin_menu.prefer_native_menu = true
+	
 	load_history_url(current_url)
 
 # handle input
@@ -48,12 +66,6 @@ func _process(_delta) -> void:
 	
 	elif Input.is_action_just_pressed("home"):
 		to_home()
-	
-	elif Input.is_action_just_pressed("invert"):
-		if inverted.visible:
-			inverted.hide()
-		else:
-			inverted.show()
 
 # keep track of history
 func add_to_history(url):
@@ -103,6 +115,7 @@ func send_http_request(url, add_history=true):
 		document.clear()
 		document.append_text("[br][wave][font_size=24][b]This address is not valid :( [/b][/font_size][/wave]")
 		page_title.text = "Adress not valid"
+		favicon.texture = GLOBE
 		
 		reload_button.show()
 		spinner.hide()
@@ -115,6 +128,7 @@ func _on_request_completed(result, response_code, _headers, body, http):
 		document.clear()
 		document.append_text("[br][wave][font_size=24][b]Could not connect to the website :( [/b][/font_size][/wave]")
 		page_title.text = "Could not connect"
+		favicon.texture = GLOBE
 		
 		reload_button.show()
 		spinner.hide()
@@ -132,12 +146,14 @@ func _on_request_completed(result, response_code, _headers, body, http):
 			document.append_text("[br][wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
 		
 		page_title.text = "HTTP error " + str(response_code)
+		favicon.texture = GLOBE
 		
 		reload_button.show()
 		spinner.hide()
 		return
 
 	var html = (body.get_string_from_utf8())
+		
 	var bbcode_result
 	bbcode_result = ToBbCode.to_bbcode(html, document)
 	
@@ -151,6 +167,11 @@ func _on_request_completed(result, response_code, _headers, body, http):
 	
 	await document.finished
 	document.scroll_to_line(0)
+	
+	if bbcode_result["favicon"]:
+		call_deferred("load_favicon", resolve_url(bbcode_result["favicon"]))
+	else:
+		favicon.texture = GLOBE
 	
 	reload_button.show()
 	spinner.hide()
@@ -190,6 +211,7 @@ func to_home(add_history=true):
 	document.append_text(bbcode_result["text"])
 	
 	page_title.text = bbcode_result["title"]
+	favicon.texture = GLOBE
 
 # go to about:blank
 func to_about_blank(add_history=true):
@@ -200,6 +222,7 @@ func to_about_blank(add_history=true):
 		
 	document.clear()
 	page_title.text = "about:blank"
+	favicon.texture = GLOBE
 	url_bar.text = ""
 	return
 
@@ -281,6 +304,15 @@ func resolve_url(url):
 
 	return base + url
 
+# load page favicon
+func load_favicon(url):
+	var page_favicon = await get_img(url)
+	
+	if page_favicon:
+		favicon.texture = page_favicon
+	else:
+		favicon.texture = GLOBE
+
 # get http error cat
 func load_error_cat(code):
 	return await get_img("https://http.cat/" + str(code) + ".jpg")
@@ -309,6 +341,7 @@ func is_image_url(url: String) -> bool:
 		or clean_url.contains(".jpeg")
 		or clean_url.contains(".webp")
 		or clean_url.contains(".svg")
+		or clean_url.contains(".ico")
 	)
 
 func get_img(url):
@@ -337,6 +370,15 @@ func get_img(url):
 	
 	var image = Image.new()
 	
+	if  url.to_lower().contains(".ico"):
+		var ico_image = load_ico_from_buffer(body)
+
+		if ico_image:
+			image = ImageTexture.create_from_image(ico_image)
+		
+		return null
+		
+	
 	var img_error = image.load_svg_from_buffer(body, 2.0)
 	
 	if img_error != OK:
@@ -354,6 +396,54 @@ func get_img(url):
 	# return the img
 	return ImageTexture.create_from_image(image)
 
+# custom load from buffer, tries to find png data in ico file
+func load_ico_from_buffer(body):
+	# ico header
+	if body.size() < 6:
+		return null
+	
+	var reserved = body.decode_u16(0)
+	var icon_type = body.decode_u16(2)
+	var count = body.decode_u16(4)
+	
+	
+	if reserved != 0 or icon_type != 1 or count == 0:
+		return null
+	
+	for i in range(count):
+		var entry_offset = 6 + i * 16
+		
+		if body.size() < entry_offset + 16:
+			return null
+		
+		var image_size = body.decode_u32(entry_offset + 8)
+		var image_offset = body.decode_u32(entry_offset + 12)
+		
+		if image_offset + image_size > body.size():
+			return null
+		
+		var image_data = body.slice(image_offset, image_offset + image_size)
+		
+		# dont allow non png dataa
+		if image_data.size() < 8:
+			continue
+		
+		if not (image_data[0] == 0x89 and image_data[1] == 0x50 and image_data[2] == 0x4e and image_data[3] == 0x47):
+			continue
+		
+		var image = Image.new()
+		
+		if image.load_png_from_buffer(image_data) == OK:
+			return image
+	
+	return null
+
+# swap fonts
+func swap_font():
+	font_index += 1
+	font_index %= font_themes.size()
+	document.theme = font_themes[font_index]
+
 # go home on home button press
 func _on_home_button_pressed() -> void:
 	to_home()
@@ -366,3 +456,12 @@ func _on_inver_button_pressed() -> void:
 		inverted.hide()
 	else:
 		inverted.show()
+
+func _on_font_button_pressed() -> void:
+	swap_font()
+
+func _on_back_button_pressed() -> void:
+	go_back()
+
+func _on_forward_button_pressed() -> void:
+	go_forward()

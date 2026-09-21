@@ -2,10 +2,8 @@
 
 [ext_resource type="Script" uid="uid://b6os1meqa4eow" path="res://scripts/browser.gd" id="1_7oh8c"]
 [ext_resource type="Texture2D" uid="uid://jmuflavfsvdr" path="res://assets/home-icon.png" id="3_7oh8c"]
-[ext_resource type="Texture2D" uid="uid://bdtmxuok1p04h" path="res://assets/globe.png" id="3_r72p6"]
-[ext_resource type="Theme" uid="uid://dj7v6k65e8dsi" path="res://themes/ststem_serif_theme.tres" id="3_x0m2j"]
+[ext_resource type="Theme" uid="uid://dj7v6k65e8dsi" path="res://ststem_serif_theme.tres" id="3_x0m2j"]
 [ext_resource type="Texture2D" uid="uid://bj7ukbypxv1c2" path="res://assets/reload-icon.png" id="4_qltgv"]
-[ext_resource type="Texture2D" uid="uid://b8xsa48v0rlg6" path="res://assets/arrow-icon.png" id="5_bwy6n"]
 [ext_resource type="PackedScene" uid="uid://ue0aaiga5gn6" path="res://spinner.tscn" id="5_x0m2j"]
 [ext_resource type="Shader" uid="uid://b0djmj7u18huy" path="res://scripts/invert.gdshader" id="6_w5c5x"]
 [ext_resource type="Texture2D" uid="uid://uyrgj7ualh5a" path="res://assets/invert-icon.png" id="7_4tuot"]
@@ -33,21 +31,12 @@ offset_right = 640.0
 offset_bottom = 360.0
 mouse_filter = 2
 
-[node name="Favicon" type="TextureRect" parent="." unique_id=1839374769]
-z_index = 1
-offset_left = -615.0
-offset_top = -347.0
-offset_right = -590.0
-offset_bottom = -322.0
-texture = ExtResource("3_r72p6")
-expand_mode = 1
-
 [node name="PageTitle" type="Label" parent="." unique_id=1261750864]
 z_index = 2
-offset_left = -584.0
-offset_top = -344.0
-offset_right = -431.0
-offset_bottom = -321.0
+offset_left = -613.0
+offset_top = -343.0
+offset_right = -460.0
+offset_bottom = -320.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -83,6 +72,10 @@ drag_and_drop_selection_enabled = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -640.0
+offset_top = -360.0
+offset_right = 630.0
+offset_bottom = -281.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -110,39 +103,12 @@ icon = ExtResource("3_7oh8c")
 expand_icon = true
 metadata/_edit_use_anchors_ = true
 
-[node name="BackButton" type="Button" parent="." unique_id=2117927805]
+[node name="ReloadButton" type="Button" parent="." unique_id=828674416]
 z_index = 3
 custom_maximum_size = Vector2(32, 32)
 offset_left = -589.0
 offset_top = -311.0
 offset_right = -561.0
-offset_bottom = -283.0
-rotation = 3.1415927
-pivot_offset = Vector2(14, 14)
-theme = ExtResource("3_x0m2j")
-icon = ExtResource("5_bwy6n")
-expand_icon = true
-metadata/_edit_use_anchors_ = true
-
-[node name="ForwardButton" type="Button" parent="." unique_id=1186235993]
-z_index = 3
-custom_maximum_size = Vector2(32, 32)
-offset_left = -561.0
-offset_top = -311.0
-offset_right = -533.0
-offset_bottom = -283.0
-pivot_offset = Vector2(14, 14)
-theme = ExtResource("3_x0m2j")
-icon = ExtResource("5_bwy6n")
-expand_icon = true
-metadata/_edit_use_anchors_ = true
-
-[node name="ReloadButton" type="Button" parent="." unique_id=828674416]
-z_index = 3
-custom_maximum_size = Vector2(32, 32)
-offset_left = -532.0
-offset_top = -311.0
-offset_right = -504.0
 offset_bottom = -283.0
 theme = ExtResource("3_x0m2j")
 icon = ExtResource("4_qltgv")
@@ -176,9 +142,9 @@ metadata/_edit_use_anchors_ = true
 [node name="Spinner" parent="." unique_id=392093373 instance=ExtResource("5_x0m2j")]
 visible = false
 z_index = 3
-offset_left = -529.0
+offset_left = -587.0
 offset_top = -308.0
-offset_right = -507.0
+offset_right = -565.0
 offset_bottom = -286.0
 pivot_offset = Vector2(11, 11)
 
@@ -186,8 +152,6 @@ pivot_offset = Vector2(11, 11)
 [connection signal="meta_hover_ended" from="Document" to="." method="_on_document_meta_hover_ended"]
 [connection signal="meta_hover_started" from="Document" to="." method="_on_document_meta_hover_started"]
 [connection signal="pressed" from="HomeButton" to="." method="_on_home_button_pressed"]
-[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]
-[connection signal="pressed" from="ForwardButton" to="." method="_on_forward_button_pressed"]
 [connection signal="pressed" from="ReloadButton" to="." method="_on_reload_button_pressed"]
 [connection signal="pressed" from="InverButton" to="." method="_on_inver_button_pressed"]
 [connection signal="pressed" from="FontButton" to="." method="_on_font_button_pressed"]
