@@ -3,13 +3,14 @@
 [ext_resource type="Script" uid="uid://b6os1meqa4eow" path="res://scripts/browser.gd" id="1_7oh8c"]
 [ext_resource type="Texture2D" uid="uid://jmuflavfsvdr" path="res://assets/home-icon.png" id="3_7oh8c"]
 [ext_resource type="Texture2D" uid="uid://bdtmxuok1p04h" path="res://assets/globe.png" id="3_r72p6"]
-[ext_resource type="Theme" uid="uid://dj7v6k65e8dsi" path="res://themes/ststem_serif_theme.tres" id="3_x0m2j"]
+[ext_resource type="Theme" uid="uid://dj7v6k65e8dsi" path="res://themes/system_serif_theme.tres" id="3_x0m2j"]
 [ext_resource type="Texture2D" uid="uid://bj7ukbypxv1c2" path="res://assets/reload-icon.png" id="4_qltgv"]
 [ext_resource type="Texture2D" uid="uid://b8xsa48v0rlg6" path="res://assets/arrow-icon.png" id="5_bwy6n"]
 [ext_resource type="PackedScene" uid="uid://ue0aaiga5gn6" path="res://spinner.tscn" id="5_x0m2j"]
 [ext_resource type="Shader" uid="uid://b0djmj7u18huy" path="res://scripts/invert.gdshader" id="6_w5c5x"]
 [ext_resource type="Texture2D" uid="uid://uyrgj7ualh5a" path="res://assets/invert-icon.png" id="7_4tuot"]
 [ext_resource type="Texture2D" uid="uid://cjlvga24utaut" path="res://assets/font-icon.png" id="7_88882"]
+[ext_resource type="Script" uid="uid://cw64ud5wkdt6j" path="res://scripts/home_manager.gd" id="11_3tvht"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qf7sd"]
 shader = ExtResource("6_w5c5x")
@@ -22,6 +23,9 @@ subpixel_positioning = 0
 script = ExtResource("1_7oh8c")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1257063879]
+
+[node name="HomeManager" type="Node" parent="." unique_id=1585776521]
+script = ExtResource("11_3tvht")
 
 [node name="Inverted" type="ColorRect" parent="." unique_id=1471578618]
 visible = false
@@ -182,6 +186,7 @@ offset_right = -507.0
 offset_bottom = -286.0
 pivot_offset = Vector2(11, 11)
 
+[connection signal="set_home" from="." to="HomeManager" method="_on_browser_set_home"]
 [connection signal="meta_clicked" from="Document" to="." method="_on_document_meta_clicked"]
 [connection signal="meta_hover_ended" from="Document" to="." method="_on_document_meta_hover_ended"]
 [connection signal="meta_hover_started" from="Document" to="." method="_on_document_meta_hover_started"]

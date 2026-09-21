@@ -21,6 +21,8 @@ var font_index = 0
 @onready var spinner: TextureProgressBar = $Spinner
 @onready var inverted: ColorRect = $Inverted
 
+signal set_home
+
 var current_url = "home.html"
 
 var history = ["home.html"]
@@ -90,6 +92,7 @@ func send_http_request(url, add_history=true):
 	reload_button.hide()
 	spinner.show()
 	url = unwrap_duckduckgo_url(url)
+	url = fix_wikipedia_url(url)
 	
 	if add_history:
 		add_to_history(url)
@@ -187,15 +190,25 @@ func unwrap_duckduckgo_url(url):
 		return url
 		
 	var query = url.substr(query_start + 1)
-
+	
 	for part in query.split("&"):
 		var pair = part.split("=", true, 1)
-
+	
 		if pair.size() == 2 and pair[0] == "uddg":
 			return pair[1].uri_decode() 
 	
 	return url
 
+func fix_wikipedia_url(url):
+	var prefix = "https://en.wikipedia.org/wiki/"
+
+	if not url.begins_with(prefix):
+		return url
+
+	var page_name = url.substr(prefix.length())
+
+	return "https://en.wikipedia.org/w/index.php?title=" + page_name + "&useparsoid=0"
+	
 # go to homepage
 func to_home(add_history=true):
 	if add_history:
@@ -204,13 +217,9 @@ func to_home(add_history=true):
 	current_url = "home.html"
 	url_bar.text = ""
 	
-	var home_html = FileAccess.open("res://home.html", FileAccess.READ)
-	var bbcode_result = ToBbCode.to_bbcode(home_html.get_as_text(), document)
-
-	document.clear()
-	document.append_text(bbcode_result["text"])
+	set_home.emit()
 	
-	page_title.text = bbcode_result["title"]
+	page_title.text = "Godot browser - home"
 	favicon.texture = GLOBE
 
 # go to about:blank
@@ -250,6 +259,7 @@ func _on_document_meta_clicked(meta):
 # show tooltip
 func _on_document_meta_hover_started(meta):
 	hovered_meta = unwrap_duckduckgo_url(resolve_url(str(meta)))
+	hovered_meta = fix_wikipedia_url(hovered_meta)
 	document.tooltip_text = hovered_meta
 
 # hide tooltip
@@ -267,7 +277,7 @@ func normazlie_url(url):
 		return "https://" + url
 	
 	return ""
-		
+
 func resolve_url(url):
 	# in-page link, does not acctualy work
 	if url.begins_with("#"):

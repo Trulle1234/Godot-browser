@@ -44,7 +44,7 @@ font_names = PackedStringArray("Sans-Serif")
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wvktn"]
 content_margin_left = 118.0
 content_margin_top = 4.0
-content_margin_right = 62.0
+content_margin_right = 60.0
 content_margin_bottom = 2.0
 bg_color = Color(0.9867516, 0.9867516, 0.9867516, 1)
 border_width_left = 2
@@ -59,7 +59,7 @@ corner_radius_bottom_left = 4
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1x85"]
 content_margin_left = 118.0
 content_margin_top = 4.0
-content_margin_right = 62.0
+content_margin_right = 60.0
 content_margin_bottom = 2.0
 bg_color = Color(0.96035105, 0.96035105, 0.9603508, 1)
 border_width_left = 2

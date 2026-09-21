@@ -76,12 +76,12 @@ static func to_bbcode(html, document, link_color="#0000ee", img_color="#ee5f00")
 	var font_size = document.get_theme_font_size("normal_font_size")
 	
 	var html_heading_to_bbcode = {
-		"h1": ["[p][font_size=" + str(font_size * 2.00) + "][b]", "[/b][/font_size][/p]"],
-		"h2": ["[p][font_size=" + str(font_size * 1.50) + "][b]", "[/b][/font_size][/p]"],
-		"h3": ["[p][font_size=" + str(font_size * 1.17) + "][b]", "[/b][/font_size][/p]"],
-		"h4": ["[p][font_size=" + str(font_size * 1.00) + "][b]", "[/b][/font_size][/p]"],
-		"h5": ["[p][font_size=" + str(font_size * 0.83) + "][b]", "[/b][/font_size][/p]"],
-		"h6": ["[p][font_size=" + str(font_size * 0.75) + "][b]", "[/b][/font_size][/p]"]
+		"h1": ["[font_size=" + str(font_size * 2.00) + "][b]", "[/b][/font_size]"],
+		"h2": ["[font_size=" + str(font_size * 1.50) + "][b]", "[/b][/font_size]"],
+		"h3": ["[font_size=" + str(font_size * 1.17) + "][b]", "[/b][/font_size]"],
+		"h4": ["[font_size=" + str(font_size * 1.00) + "][b]", "[/b][/font_size]"],
+		"h5": ["[font_size=" + str(font_size * 0.83) + "][b]", "[/b][/font_size]"],
+		"h6": ["[font_size=" + str(font_size * 0.75) + "][b]", "[/b][/font_size]"]
 	}
 	
 	for heading in html_heading_to_bbcode:
@@ -143,7 +143,7 @@ static func to_bbcode(html, document, link_color="#0000ee", img_color="#ee5f00")
 	
 	# hr lines
 	var hr_regex = RegEx.create_from_string("(?i)<hr\\b[^>]*>")
-	cleaned = hr_regex.sub(cleaned, "[br][hr width=100%]", true)
+	cleaned = hr_regex.sub(cleaned, "[br][hr width=100%][br]", true)
 	
 	# table rows to newlines
 	var tr_open_regex = RegEx.create_from_string("(?is)<tr\\b[^>]*>")
@@ -181,16 +181,26 @@ static func solve_entites(text):
 		text = text.replace(entity, HtmlEntites.html_entities[entity])
 	
 	# hex html entities
-	var hex_entity_regex = RegEx.create_from_string("&#x([0-9a-fA-F]+);")
-	var hex_matches = hex_entity_regex.search_all(text)
+	var hex_regex = RegEx.create_from_string("&#[xX]([0-9a-fA-F]+);")
+	var hex_matches = hex_regex.search_all(text)
 	
 	for i in range(hex_matches.size() - 1, -1, -1):
-		var match = hex_matches[i]
-		
-		text = (text.substr(0, match.get_start()) + "[char=" + str(match.get_string(1)) + "]" + text.substr(match.get_end()))
+		var m = hex_matches[i]
+		var hex_val = m.get_string(1).to_lower()
+		text = text.substr(0, m.get_start()) + "[char=" + hex_val + "]" + text.substr(m.get_end())
 	
+	# int html enties
+	var int_regex = RegEx.create_from_string("&#([0-9]+);")
+	var int_matches = int_regex.search_all(text)
+	
+	for i in range(int_matches.size() - 1, -1, -1):
+		var m = int_matches[i]
+		var int_val = int(m.get_string(1))
+		var hex_val = "%x" % int_val
+		text = text.substr(0, m.get_start()) + "[char=" + hex_val + "]" + text.substr(m.get_end())
+		
 	return text
-
+	
 static func clean(text):
 	# duckduckgo
 	text = text.replace(
