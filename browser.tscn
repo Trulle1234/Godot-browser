@@ -27,6 +27,10 @@ script = ExtResource("1_7oh8c")
 [node name="HomeManager" type="Node" parent="." unique_id=1585776521]
 script = ExtResource("11_3tvht")
 
+[node name="HomeUpdateTimer" type="Timer" parent="." unique_id=1841763639]
+wait_time = 10.0
+autostart = true
+
 [node name="Inverted" type="ColorRect" parent="." unique_id=1471578618]
 visible = false
 z_index = 99
@@ -187,6 +191,7 @@ offset_bottom = -286.0
 pivot_offset = Vector2(11, 11)
 
 [connection signal="set_home" from="." to="HomeManager" method="_on_browser_set_home"]
+[connection signal="timeout" from="HomeUpdateTimer" to="." method="_on_home_update_timer_timeout"]
 [connection signal="meta_clicked" from="Document" to="." method="_on_document_meta_clicked"]
 [connection signal="meta_hover_ended" from="Document" to="." method="_on_document_meta_hover_ended"]
 [connection signal="meta_hover_started" from="Document" to="." method="_on_document_meta_hover_started"]

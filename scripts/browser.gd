@@ -20,12 +20,13 @@ var font_index = 0
 @onready var reload_button: Button = $ReloadButton
 @onready var spinner: TextureProgressBar = $Spinner
 @onready var inverted: ColorRect = $Inverted
+@onready var home_update_timer: Timer = $HomeUpdateTimer
 
 signal set_home
 
-var current_url = "home.html"
+var current_url = "about:home"
 
-var history = ["home.html"]
+var history = ["about:home"]
 var history_index = 0
 
 var hovered_meta = ""
@@ -47,7 +48,7 @@ func _process(_delta) -> void:
 		
 		if url_bar_text == "" or url_bar_text == "about:blank":
 			to_about_blank()
-		elif url_bar_text == "home.html":
+		elif url_bar_text == "about:home":
 			to_home()
 		elif normalized_url:
 			send_http_request(normalized_url)
@@ -82,7 +83,7 @@ func add_to_history(url):
 func load_history_url(url):
 	if url == "" or url == "about:blank":
 		to_about_blank(false)
-	elif url == "home.html":
+	elif url == "about:home":
 		to_home(false)
 	else:
 		send_http_request(url, false)
@@ -212,9 +213,9 @@ func fix_wikipedia_url(url):
 # go to homepage
 func to_home(add_history=true):
 	if add_history:
-		add_to_history("home.html")
+		add_to_history("about:home")
 	
-	current_url = "home.html"
+	current_url = "about:home"
 	url_bar.text = ""
 	
 	set_home.emit()
@@ -332,8 +333,7 @@ func load_image(url):
 	
 	var size = Vector2(img.get_width(), img.get_height())
 	
-	var scale = min(1100 / size.x, 600 / size.y, 1.0)
-	var display_size = size * scale
+	var display_size = size * min(1100 / size.x, 600 / size.y, 1.0)
 	
 	page_title.text = "Image - " + url
 	document.clear()
@@ -387,7 +387,6 @@ func get_img(url):
 			image = ImageTexture.create_from_image(ico_image)
 		
 		return null
-		
 	
 	var img_error = image.load_svg_from_buffer(body, 2.0)
 	
@@ -475,3 +474,7 @@ func _on_back_button_pressed() -> void:
 
 func _on_forward_button_pressed() -> void:
 	go_forward()
+
+func _on_home_update_timer_timeout() -> void:
+	if current_url == "about:home":
+		to_home()

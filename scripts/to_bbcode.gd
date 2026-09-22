@@ -60,7 +60,7 @@ static func to_bbcode(html, document, link_color="#0000ee", img_color="#ee5f00")
 		"li": "ul",
 		"code": "code",
 		"blockquote": "indent",
-		"pre": "code"
+		"pre": "p"
 	}
 
 	for tag in html_to_bbcode:
@@ -120,7 +120,6 @@ static func to_bbcode(html, document, link_color="#0000ee", img_color="#ee5f00")
 		
 		if (
 			src.contains(".png")
-			or src.contains(".png")
 			or src.contains(".jpg")
 			or src.contains(".jpeg")
 			or src.contains(".webp")

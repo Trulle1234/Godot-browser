@@ -11,7 +11,6 @@ const TEXT_TEMPLATE = "
 [font_size=18.72][b][url=https://text.npr.org][color=#0000ee]NPR Text[/color][/url]  •  [url=https://news.ycombinator.com/][color=#0000ee]Hacker News[/color][/url]  •  [url=https://brutalist.report/][color=#0000ee]The Brutalist Report[/color][/url]  •  [url=https://en.wikipedia.org/wiki/Main_Page][color=#0000ee]English Wikipedia[/color][/url]  •  [url=https://apod.nasa.gov/apod/astropix.html][color=#0000ee]Astronomy Picture of the Day[/color][/url]  •  [url=https://www.gutenberg.org/][color=#0000ee]Project Gutenberg[/color][/url][/b][/font_size]
 "
 
-
 # get and format date and clock
 func get_clock():
 	var dt = Time.get_datetime_dict_from_system()
