@@ -144,7 +144,7 @@ func _on_request_completed(result, response_code, _headers, body, http):
 		if error_cat:
 			document.clear()
 			document.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
-			document.add_image(error_cat, 0, 550, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "error_cat", false, "")
+			document.add_image(error_cat, 0, 625, Color.WHITE, INLINE_ALIGNMENT_CENTER, Rect2(), "error_cat", false, "")
 		else:
 			document.clear()
 			document.append_text("[br][wave][font_size=24][b]HTTP error " + str(response_code) + " :( [/b][/font_size][/wave]")
@@ -155,9 +155,13 @@ func _on_request_completed(result, response_code, _headers, body, http):
 		reload_button.show()
 		spinner.hide()
 		return
-
-	var html = (body.get_string_from_utf8())
-		
+	
+	var html
+	html = body.get_string_from_utf8()
+	
+	if html.contains("�"):
+		html = body.get_string_from_ascii()
+	
 	var bbcode_result
 	bbcode_result = ToBbCode.to_bbcode(html, document)
 	
@@ -175,7 +179,13 @@ func _on_request_completed(result, response_code, _headers, body, http):
 	if bbcode_result["favicon"]:
 		call_deferred("load_favicon", resolve_url(bbcode_result["favicon"]))
 	else:
-		favicon.texture = GLOBE
+		var favicon_link_regex = RegEx.create_from_string("^(https?://[^/]+)")
+		var match = favicon_link_regex.search(current_url)
+		
+		if match:
+			call_deferred("load_favicon", match.get_string(1) + "/favicon.ico")
+		else:
+			favicon.texture = GLOBE
 	
 	reload_button.show()
 	spinner.hide()
@@ -211,12 +221,13 @@ func fix_wikipedia_url(url):
 	return "https://en.wikipedia.org/w/index.php?title=" + page_name + "&useparsoid=0"
 	
 # go to homepage
-func to_home(add_history=true):
+func to_home(add_history=true, clear_url_bar=true):
 	if add_history:
 		add_to_history("about:home")
 	
 	current_url = "about:home"
-	url_bar.text = ""
+	if clear_url_bar:
+		url_bar.text = ""
 	
 	set_home.emit()
 	
@@ -333,7 +344,7 @@ func load_image(url):
 	
 	var size = Vector2(img.get_width(), img.get_height())
 	
-	var display_size = size * min(1100 / size.x, 600 / size.y, 1.0)
+	var display_size = size * min(1270 / size.x, 625 / size.y, 1.0)
 	
 	page_title.text = "Image - " + url
 	document.clear()
@@ -355,37 +366,40 @@ func is_image_url(url: String) -> bool:
 	)
 
 func get_img(url):
+	if url.contains("data:"):
+		return null
+	
 	var http = HTTPRequest.new()
 	add_child(http)
-
+	
 	var error = http.request(url)
 	
 	# check for errors
 	if error != OK:
 		http.queue_free()
 		return null
-
+	
 	var result_data = await http.request_completed
 	http.queue_free()
-
+	
 	var result = result_data[0]
 	var response_code = result_data[1]
 	var body = result_data[3]
-
+	
 	if result != HTTPRequest.RESULT_SUCCESS:
 		return null
-
+	
 	if response_code < 200 or response_code >= 300:
 		return null
-	
+		
 	var image = Image.new()
 	
-	if  url.to_lower().contains(".ico"):
+	if url.to_lower().contains(".ico"):
 		var ico_image = load_ico_from_buffer(body)
-
+	
 		if ico_image:
-			image = ImageTexture.create_from_image(ico_image)
-		
+			return ImageTexture.create_from_image(ico_image)
+	
 		return null
 	
 	var img_error = image.load_svg_from_buffer(body, 2.0)
@@ -395,13 +409,13 @@ func get_img(url):
 		
 	if img_error != OK:
 		img_error = image.load_jpg_from_buffer(body)
-
+	
 	if img_error != OK:
 		img_error = image.load_webp_from_buffer(body)
-
+	
 	if img_error != OK:
 		return null
-
+	
 	# return the img
 	return ImageTexture.create_from_image(image)
 
@@ -477,4 +491,4 @@ func _on_forward_button_pressed() -> void:
 
 func _on_home_update_timer_timeout() -> void:
 	if current_url == "about:home":
-		to_home()
+		to_home(true, false)

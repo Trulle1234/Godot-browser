@@ -6,6 +6,7 @@ const TEXT_TEMPLATE = "
 [wave][font_size=32][b]Godot browser[/b][/font_size][/wave]
 [i][font_size=18.72][time][/font_size][/i]
 
+
 [font_size=24][b]Shortcuts[/b][/font_size]
 
 [font_size=18.72][b][url=https://text.npr.org][color=#0000ee]NPR Text[/color][/url]  •  [url=https://news.ycombinator.com/][color=#0000ee]Hacker News[/color][/url]  •  [url=https://brutalist.report/][color=#0000ee]The Brutalist Report[/color][/url]  •  [url=https://en.wikipedia.org/wiki/Main_Page][color=#0000ee]English Wikipedia[/color][/url]  •  [url=https://apod.nasa.gov/apod/astropix.html][color=#0000ee]Astronomy Picture of the Day[/color][/url]  •  [url=https://www.gutenberg.org/][color=#0000ee]Project Gutenberg[/color][/url][/b][/font_size]

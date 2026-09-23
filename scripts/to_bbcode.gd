@@ -101,7 +101,7 @@ static func to_bbcode(html, document, link_color="#0000ee", img_color="#ee5f00")
 	
 	var src_regex = RegEx.create_from_string('(?i)src=["\']([^"\']+)["\']')
 	var alt_regex = RegEx.create_from_string('(?i)alt=["\']([^"\']*)["\']')
-	
+		
 	for i in range(img_matches.size() - 1, -1, -1):
 		var img_match = img_matches[i]
 		var img_tag = img_match.get_string()

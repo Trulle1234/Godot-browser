@@ -103,7 +103,6 @@ offset_right = 619.0
 offset_bottom = -281.0
 theme = ExtResource("3_x0m2j")
 placeholder_text = "Enter a URL or search DuckDuckGo"
-emoji_menu_enabled = false
 metadata/_edit_use_anchors_ = true
 
 [node name="HomeButton" type="Button" parent="." unique_id=315255529]
@@ -189,6 +188,13 @@ offset_top = -308.0
 offset_right = -507.0
 offset_bottom = -286.0
 pivot_offset = Vector2(11, 11)
+
+[node name="ColorRect2" type="ColorRect" parent="." unique_id=282866954]
+offset_left = -640.0
+offset_top = -360.0
+offset_right = 630.0
+offset_bottom = -281.0
+mouse_filter = 2
 
 [connection signal="set_home" from="." to="HomeManager" method="_on_browser_set_home"]
 [connection signal="timeout" from="HomeUpdateTimer" to="." method="_on_home_update_timer_timeout"]
