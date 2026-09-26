@@ -111,6 +111,8 @@ func send_http_request(url, add_history=true):
 		return
 	
 	var http = HTTPRequest.new()
+	http.timeout = 15
+	
 	add_child(http)
 
 	http.request_completed.connect(_on_request_completed.bind(http))
@@ -126,7 +128,7 @@ func send_http_request(url, add_history=true):
 		spinner.hide()
 
 # when compleated, show it
-func _on_request_completed(result, response_code, _headers, body, http):
+func _on_request_completed(result, response_code, headers, body, http):
 	http.queue_free()
 	
 	if result != HTTPRequest.RESULT_SUCCESS:
@@ -157,12 +159,36 @@ func _on_request_completed(result, response_code, _headers, body, http):
 		spinner.hide()
 		return
 	
-	var html
-	html = body.get_string_from_utf8()
+	# get content type
+	var content_type
+	var charset
 	
-	if html.contains("�"):
-		html = body.get_string_from_ascii()
+	for header in headers:
+		if header.to_lower().begins_with("content-type:"):
+			content_type = header.substr("content-type:".length()).strip_edges()
 	
+	var charset_regex = RegEx.create_from_string("(?i)charset\\s*=\\s*[\"']?([^;\"'\\s]+)")
+	var charset_match = charset_regex.search(content_type)
+	
+	if charset_match:
+		charset = charset_match.get_string(1).to_lower()
+	
+	var html = ""
+	match charset:
+		"utf-8", "utf8", "":
+			html = body.get_string_from_utf8()
+			
+		"iso-8859-1", "latin1", "latin-1":
+			for byte in body:
+				html += String.chr(byte)
+			
+		"us-ascii", "ascii":
+			html = body.get_string_from_ascii()
+			
+		_:
+			print("unsupported charset: ", charset)
+			html = body.get_string_from_utf8()
+			
 	var bbcode_result
 	bbcode_result = ToBbCode.to_bbcode(html, document)
 	
@@ -210,29 +236,22 @@ func unwrap_duckduckgo_url(url):
 	return url
 
 func fix_wikipedia_url(url):
-	var prefix = "https://en.wikipedia.org/wiki/"
-	var img_prefix = "https://thumb.wikimedia.org/wikipedia/commons/thumb/"
-
-	if url.begins_with(prefix):
-		var page_name = url.substr(prefix.length())
-
-		return "https://en.wikipedia.org/w/index.php?title=" + page_name + "&useparsoid=0"
-	elif url.begins_with(img_prefix):
-		url = url.replace(
-			"https://thumb.wikimedia.org/wikipedia/commons/thumb/",
-			"https://upload.wikimedia.org/wikipedia/commons/"
-		)
-		
-		var query_i = url.find("?")
-		if query_i != -1:
-			url = url.substr(0, query_i)
-		
-		var parts = url.split("/")
-		if parts.size() < 2:
-			return url
-		
-		parts.remove_at(parts.size() - 1)
-		return "/".join(parts)
+	var link_regex = RegEx.create_from_string(r"^https://([a-z-]+)\.wikipedia\.org/wiki/([^?#]+)")
+	var link_match = link_regex.search(url)
+	
+	var img_regex = RegEx.create_from_string(r"^https://thumb\.wikimedia\.org/wikipedia/([a-z-]+)/thumb/(.+)/[^/]+$")
+	var img_match = img_regex.search(url)
+	
+	if link_match:
+		var lang = link_match.get_string(1)
+		var page_name = link_match.get_string(2)
+	
+		return "https://"+ lang + ".wikipedia.org/w/index.php?title=" + page_name + "&useparsoid=0"
+	if img_match:
+		var wiki_part = img_match.get_string(1)
+		var image_path = img_match.get_string(2)
+	
+		return "https://upload.wikimedia.org/wikipedia/" + wiki_part + "/" + image_path
 		
 	else:
 		return url
