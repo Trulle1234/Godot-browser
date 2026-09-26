@@ -84,15 +84,12 @@ context_menu_enabled = true
 threaded = true
 progress_bar_delay = 0
 selection_enabled = true
-deselect_on_focus_loss_enabled = false
-drag_and_drop_selection_enabled = false
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1759942384]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ColorRect" type="ColorRect" parent="." unique_id=282866954]
+offset_left = -640.0
+offset_top = -360.0
+offset_right = 630.0
+offset_bottom = -281.0
 mouse_filter = 2
 
 [node name="URLBar" type="LineEdit" parent="." unique_id=1144891038]
@@ -188,13 +185,6 @@ offset_top = -308.0
 offset_right = -507.0
 offset_bottom = -286.0
 pivot_offset = Vector2(11, 11)
-
-[node name="ColorRect2" type="ColorRect" parent="." unique_id=282866954]
-offset_left = -640.0
-offset_top = -360.0
-offset_right = 630.0
-offset_bottom = -281.0
-mouse_filter = 2
 
 [connection signal="set_home" from="." to="HomeManager" method="_on_browser_set_home"]
 [connection signal="timeout" from="HomeUpdateTimer" to="." method="_on_home_update_timer_timeout"]
