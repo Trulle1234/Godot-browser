@@ -3,6 +3,7 @@ extends Node2D
 const ToBbCode = preload("uid://duach83yc561m")
 
 const GLOBE = preload("uid://bdtmxuok1p04h")
+const SMALL_LOGO = preload("uid://bkyqcrhwvcuc0")
 
 const font_themes = [
 	preload("uid://dj7v6k65e8dsi"),
@@ -170,8 +171,6 @@ func _on_request_completed(result, response_code, _headers, body, http):
 
 	if bbcode_result["title"]:
 		page_title.text = bbcode_result["title"]
-	else:
-		page_title.text = "Untitled"
 	
 	await document.finished
 	document.scroll_to_line(0)
@@ -212,14 +211,32 @@ func unwrap_duckduckgo_url(url):
 
 func fix_wikipedia_url(url):
 	var prefix = "https://en.wikipedia.org/wiki/"
+	var img_prefix = "https://thumb.wikimedia.org/wikipedia/commons/thumb/"
 
-	if not url.begins_with(prefix):
+	if url.begins_with(prefix):
+		var page_name = url.substr(prefix.length())
+
+		return "https://en.wikipedia.org/w/index.php?title=" + page_name + "&useparsoid=0"
+	elif url.begins_with(img_prefix):
+		url = url.replace(
+			"https://thumb.wikimedia.org/wikipedia/commons/thumb/",
+			"https://upload.wikimedia.org/wikipedia/commons/"
+		)
+		
+		var query_i = url.find("?")
+		if query_i != -1:
+			url = url.substr(0, query_i)
+		
+		var parts = url.split("/")
+		if parts.size() < 2:
+			return url
+		
+		parts.remove_at(parts.size() - 1)
+		return "/".join(parts)
+		
+	else:
 		return url
 
-	var page_name = url.substr(prefix.length())
-
-	return "https://en.wikipedia.org/w/index.php?title=" + page_name + "&useparsoid=0"
-	
 # go to homepage
 func to_home(add_history=true, clear_url_bar=true):
 	if add_history:
@@ -232,7 +249,7 @@ func to_home(add_history=true, clear_url_bar=true):
 	set_home.emit()
 	
 	page_title.text = "Godot browser - home"
-	favicon.texture = GLOBE
+	favicon.texture = SMALL_LOGO
 
 # go to about:blank
 func to_about_blank(add_history=true):
@@ -357,7 +374,6 @@ func is_image_url(url: String) -> bool:
 	
 	return ( 
 		clean_url.contains(".png")
-		or clean_url.contains(".png")
 		or clean_url.contains(".jpg")
 		or clean_url.contains(".jpeg")
 		or clean_url.contains(".webp")
@@ -429,25 +445,27 @@ func load_ico_from_buffer(body):
 	var icon_type = body.decode_u16(2)
 	var count = body.decode_u16(4)
 	
-	
 	if reserved != 0 or icon_type != 1 or count == 0:
 		return null
+	
+	var best_image = null
+	var best_area = 0
 	
 	for i in range(count):
 		var entry_offset = 6 + i * 16
 		
 		if body.size() < entry_offset + 16:
-			return null
+			continue
 		
 		var image_size = body.decode_u32(entry_offset + 8)
 		var image_offset = body.decode_u32(entry_offset + 12)
 		
 		if image_offset + image_size > body.size():
-			return null
+			continue
 		
 		var image_data = body.slice(image_offset, image_offset + image_size)
 		
-		# dont allow non png dataa
+		# only support png entries
 		if image_data.size() < 8:
 			continue
 		
@@ -456,10 +474,16 @@ func load_ico_from_buffer(body):
 		
 		var image = Image.new()
 		
-		if image.load_png_from_buffer(image_data) == OK:
-			return image
+		if image.load_png_from_buffer(image_data) != OK:
+			continue
+		
+		var area = image.get_width() * image.get_height()
+		
+		if area > best_area:
+			best_area = area
+			best_image = image
 	
-	return null
+	return best_image
 
 # swap fonts
 func swap_font():

@@ -203,7 +203,7 @@ static func solve_entites(text):
 static func clean(text):
 	# duckduckgo
 	text = text.replace(
-		"[p] [p][/p] [p] [url=/html/][color=#0000ee][/color][/url]  [p]   [/p] [p]  All Regions Argentina Australia Austria Belgium (fr) Belgium (nl) Brazil Bulgaria Canada (en) Canada (fr) Catalonia Chile China Colombia Croatia Czech Republic Denmark Estonia Finland France Germany Greece Hong Kong Hungary Iceland India (en) Indonesia (en) Ireland Israel (en) Italy Japan Korea Latvia Lithuania Malaysia (en) Mexico Netherlands New Zealand Norway Pakistan (en) Peru Philippines (en) Poland Portugal Romania Russia Saudi Arabia Singapore Slovakia Slovenia South Africa Spain (ca) Spain (es) Sweden Switzerland (de) Switzerland (fr) Taiwan Thailand (en) Turkey US (English) US (Spanish) Ukraine United Kingdom Vietnam (en)  [/p] [p]  Any Time Past Day Past Week Past Month Past Year  [/p]  [/p] [p] [p] [p]",
+		"[p] [p][/p] [p] [url=/html/][color=#0000ee][/color][/url]  [p]   [/p] [p]  All Regions Argentina Australia Austria Belgium (fr) Belgium (nl) Brazil Bulgaria Canada (en) Canada (fr) Catalonia Chile China Colombia Croatia Czech Republic Denmark Estonia Finland France Germany Greece Hong Kong Hungary Iceland India (en) Indonesia (en) Ireland Israel (en) Italy Japan Korea Latvia Lithuania Malaysia (en) Mexico Netherlands New Zealand Norway Pakistan (en) Peru Philippines (en) Poland Portugal Romania Russia Saudi Arabia Singapore Slovakia Slovenia South Africa Spain (ca) Spain (es) Sweden Switzerland (de) Switzerland (fr) Taiwan Thailand (en) Turkey US (English) US (Spanish) Ukraine United Kingdom Vietnam (en)  [/p] [p]  Any Time Past Day Past Week Past Month Past Year  [/p]  [/p] [p] [p]",
 		""
 		)
 	text = text.replace(
@@ -213,7 +213,7 @@ static func clean(text):
 	
 	# hacker news
 	text = text.replace(
-		"[url=https://news.ycombinator.com][color=#0000ee][url=y18.svg][color=#ee5f00][Image][/color][/url][/color][/url] [b][url=news][color=#0000ee]Hacker News[/color][/url][/b][url=newest][color=#0000ee]new[/color][/url] | [url=front][color=#0000ee]past[/color][/url] | [url=newcomments][color=#0000ee]comments[/color][/url]",
-		"[url=https://news.ycombinator.com][color=#0000ee][url=y18.svg][color=#ee5f00][Image][/color][/url][/color][/url] [b][url=news][color=#0000ee]Hacker News[/color][/url][/b] [url=newest][color=#0000ee]new[/color][/url] | [url=front][color=#0000ee]past[/color][/url] | [url=newcomments][color=#0000ee]comments[/color][/url]"
+		"[url=https://news.ycombinator.com][color=#0000ee][url=y18.svg][color=#ee5f00][Image][/color][/url][/color][/url] [b][url=news][color=#0000ee]Hacker News[/color][/url][/b]",
+		"[url=https://news.ycombinator.com][color=#0000ee][url=y18.svg][color=#ee5f00][Image][/color][/url][/color][/url] [b][url=news][color=#0000ee]Hacker News[/color][/url][/b] "
 	)
 	return text
