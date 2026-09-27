@@ -375,12 +375,18 @@ func load_favicon(url):
 func load_error_cat(code):
 	return await get_img("https://http.cat/" + str(code) + ".jpg")
 
+# open image in full screen
 func load_image(url):
 	var img = await get_img(url)
 	
 	var size = Vector2(img.get_width(), img.get_height())
 	
-	var display_size = size * min(1270 / size.x, 625 / size.y, 1.0)
+	var max_scale = min(1270 / size.x, 600 / size.y, 1.0)
+	var min_scale = max(100 / size.x, 100 / size.y)
+	
+	var scale_factor = max(max_scale, min_scale)
+	
+	var display_size = size * scale_factor
 	
 	page_title.text = "Image - " + url
 	document.clear()
